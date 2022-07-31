@@ -1,0 +1,13 @@
+CHIP Or7 {
+    IN a, b, c, d,e,f,g;
+    OUT out;
+
+    PARTS:
+    // Put your code here:
+    Or(a=a,b=b,out=o);
+    Or(a=o,b=c,out=o2);
+    Or(a=o2,b=d,out=o3);
+    Or(a=o3,b=e,out=o4);
+    Or(a=o4,b=f,out=o5);
+    Or(a=o5,b=g,out=out);
+}
