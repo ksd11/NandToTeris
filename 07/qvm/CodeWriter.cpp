@@ -67,11 +67,6 @@ CodeWriter::~CodeWriter(){
   out.close();
 }
 
-// static map<string, string> seg2addr = {
-//   {"static", "16"},
-//   {"constant", ""}
-// };
-
 static string generalSymbol(){
   static int cnt = 0;
   return "jump.qvm.build."+to_string(cnt++);
@@ -123,23 +118,121 @@ void CodeWriter::writeArithmetic(string command){
   }
 }
  
+
+//p将value push到栈顶
+static string push2stack(string val){
+  return "@SP\n"
+         "A=M\n"
+         "M="+val+"\n"
+         "@SP\n"
+         "M=M+1\n";
+}
  
- 
+// 将栈顶的值弹出放入 dest+index
+static string pop2dest(string index, string dest){
+  return "@"+dest+"\n"
+         "D=M\n"
+         "@"+index+"\n"
+         "D=D+A\n"
+         "@R5\n"
+         "M=D\n"        //将目标的地址暂存R5
+         "@SP\n"
+         "AM=M-1\n"
+         "D=M\n"        //取到弹出的值
+         "@R5\n"
+         "A=M\n"
+         "M=D\n";
+}
+
+static string pop2index(string index){
+  return "@"+index+"\n"
+          "D=A\n"
+          "@R5\n"
+          "M=D\n"
+          "@SP\n"
+          "AM=M-1\n"
+          "D=M\n"        //取到弹出的值
+          "@R5\n"
+          "A=M\n"
+          "M=D\n";
+}
+
+//将*(dest+index)的值写入D
+static string get2D(string index, string dest){
+  return "@"+dest+"\n"
+         "D=M\n"
+         "@"+index+"\n"
+         "A=D+A\n"
+         "D=M\n";
+}
+
 void CodeWriter::writePushPop(CType c, string segment,string index){
+  uint16_t idx;
   switch(c){
     case C_PUSH:
       if(segment=="constant"){
-        string s = "@"+index+"\n"
-                  "D=A\n"
-                  "@SP\n"
-                  "A=M\n"
-                  "M=D\n"
-                  "@SP\n"
-                  "M=M+1\n";
-        out << s;
+        out << "@"+index+"\n"
+                "D=A\n" + push2stack("D");
+
+      }else if(segment=="local"){
+        out << get2D(index,"LCL") + push2stack("D");
+
+      }else if(segment=="argument"){
+        out << get2D(index,"ARG") + push2stack("D");
+
+      }else if(segment=="this"){
+        out << get2D(index,"THIS") + push2stack("D");
+
+      }else if(segment=="that"){
+        out << get2D(index,"THAT") + push2stack("D");
+
+      }else if(segment == "pointer"){
+        index = index=="0"?"3":"4";
+        out << "@"+index+"\n"
+               "D=M\n" + push2stack("D");
+      }else if(segment == "temp"){
+        sscanf(index.c_str(), "%hu", &idx);
+        index = to_string(idx+5);
+        out << "@"+index+"\n"
+               "D=M\n" + push2stack("D");
+      }else if(segment == "static"){
+        sscanf(index.c_str(), "%hu", &idx);
+        index = to_string(idx+16);
+        out << "@"+index+"\n"
+               "D=M\n" + push2stack("D");
+      }else{
+        cout<<"error: "<<segment<<endl;
+        exit(1);
       }
       break;
     case C_POP:
+      if(segment=="local"){
+        out << pop2dest(index, "LCL");
+
+      }else if(segment=="argument"){
+        out << pop2dest(index,"ARG");
+
+      }else if(segment=="this"){
+        out << pop2dest(index,"THIS");
+
+      }else if(segment=="that"){
+        out << pop2dest(index,"THAT");
+
+      }else if(segment == "pointer"){
+        index = index=="0"?"3":"4";
+        out << pop2index(index);
+      }else if(segment == "temp"){
+        sscanf(index.c_str(), "%hu", &idx);
+        index = to_string(idx+5);
+        out << pop2index(index);
+      }else if(segment == "static"){
+        sscanf(index.c_str(), "%hu", &idx);
+        index = to_string(idx+16);
+        out << pop2index(index);
+      }else{
+        cout<<"error: "<<segment<<endl;
+        exit(1);
+      }
       break;
   }
 }
