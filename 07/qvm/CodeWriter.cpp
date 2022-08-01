@@ -134,12 +134,12 @@ static string pop2dest(string index, string dest){
          "D=M\n"
          "@"+index+"\n"
          "D=D+A\n"
-         "@R5\n"
-         "M=D\n"        //将目标的地址暂存R5
+         "@R13\n"
+         "M=D\n"        //将目标的地址暂存R13
          "@SP\n"
          "AM=M-1\n"
          "D=M\n"        //取到弹出的值
-         "@R5\n"
+         "@R13\n"
          "A=M\n"
          "M=D\n";
 }
@@ -147,12 +147,12 @@ static string pop2dest(string index, string dest){
 static string pop2index(string index){
   return "@"+index+"\n"
           "D=A\n"
-          "@R5\n"
+          "@13\n"
           "M=D\n"
           "@SP\n"
           "AM=M-1\n"
           "D=M\n"        //取到弹出的值
-          "@R5\n"
+          "@R13\n"
           "A=M\n"
           "M=D\n";
 }
@@ -196,9 +196,8 @@ void CodeWriter::writePushPop(CType c, string segment,string index){
         out << "@"+index+"\n"
                "D=M\n" + push2stack("D");
       }else if(segment == "static"){
-        sscanf(index.c_str(), "%hu", &idx);
-        index = to_string(idx+16);
-        out << "@"+index+"\n"
+        extern string input_file_no_suffix;
+        out << "@"+input_file_no_suffix+"."+index+"\n"
                "D=M\n" + push2stack("D");
       }else{
         cout<<"error: "<<segment<<endl;
@@ -226,9 +225,8 @@ void CodeWriter::writePushPop(CType c, string segment,string index){
         index = to_string(idx+5);
         out << pop2index(index);
       }else if(segment == "static"){
-        sscanf(index.c_str(), "%hu", &idx);
-        index = to_string(idx+16);
-        out << pop2index(index);
+        extern string input_file_no_suffix;
+        out << pop2index(input_file_no_suffix+"."+index);
       }else{
         cout<<"error: "<<segment<<endl;
         exit(1);

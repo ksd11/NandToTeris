@@ -6,6 +6,25 @@ using namespace std;
 /* ../StackArithmetic/SimpleAdd/SimpleAdd.vm */
 string input_file;
 string output_file;
+string input_file_no_suffix;
+
+//设置str没有后缀为input_file_no_suffix
+static void erase_file_suffix(string str){
+  int idx = str.rfind(".vm");
+  if(idx != string::npos){
+    str.erase(idx,3);  //去掉后缀
+  }
+  int len = str.length();
+  for(int i=len-1;i>=0;i--){
+    if(str[i] == '\\' || str[i] == '/'){
+      idx = i;
+      break;
+    }
+  }
+  if(idx>=0)
+    str = str.substr(idx+1);
+  input_file_no_suffix = str;
+}
 
 static string vm2asm(string str){
   size_t idx = str.rfind(".vm");
@@ -27,6 +46,7 @@ int main(int argc, char const *argv[])
 
   input_file = argv[1]; // TODO. need to handle directory
   output_file = vm2asm(input_file);
+  erase_file_suffix(input_file);
   ofstream out(output_file);
 
 
