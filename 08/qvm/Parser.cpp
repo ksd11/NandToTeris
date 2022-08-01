@@ -68,7 +68,7 @@ void Parser::advance(){
     a2 = results.str(3);
   }else if(regex_match(commandline,results,control_regex)){
     if(results.str(1) == "label"){
-      type == C_LABEL;
+      type = C_LABEL;
     }else if(results.str(1) == "goto"){
       type = C_GOTO;
     }else{

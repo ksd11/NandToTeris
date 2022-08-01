@@ -6,6 +6,9 @@
 #include<map>
 using namespace std;
 
+extern string functionName;  //当前正在处理的函数
+extern string input_file_no_suffix; //当前正在处理的文件（不含后缀）
+
 static map<string, string> COMMAND = {
   {
     "add", "@SP\n"
@@ -196,7 +199,6 @@ void CodeWriter::writePushPop(CType c, string segment,string index){
         out << "@"+index+"\n"
                "D=M\n" + push2stack("D");
       }else if(segment == "static"){
-        extern string input_file_no_suffix;
         out << "@"+input_file_no_suffix+"."+index+"\n"
                "D=M\n" + push2stack("D");
       }else{
@@ -225,7 +227,6 @@ void CodeWriter::writePushPop(CType c, string segment,string index){
         index = to_string(idx+5);
         out << pop2index(index);
       }else if(segment == "static"){
-        extern string input_file_no_suffix;
         out << pop2index(input_file_no_suffix+"."+index);
       }else{
         cout<<"error: "<<segment<<endl;
@@ -241,3 +242,23 @@ void CodeWriter::writeDeathLoop(){
   out << s;
 }
 
+
+//生成一个  functionName$label的标签
+void CodeWriter::writeLabel(string label){
+  out<< "("+ functionName + "$" + label +")\n";
+}
+
+
+void CodeWriter::writeGoto(string label){
+  out<< "@"+ functionName + "$" + label +"\n"
+         "0; JMP\n";
+}
+
+
+void CodeWriter::writeIf(string label){
+  out << "@SP\n"
+         "AM=M-1\n"
+         "D=M\n"
+         "@"+functionName + "$"+label+"\n"
+         "D; JNE\n";
+}

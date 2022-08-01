@@ -14,6 +14,9 @@ public:
   void writeArithmetic(string command);
   void writePushPop(CType c, string segment,string index);
   void writeDeathLoop();
+  void writeLabel(string label);
+  void writeGoto(string label);
+  void writeIf(string label);
   // void close();
 private:
   ofstream out;

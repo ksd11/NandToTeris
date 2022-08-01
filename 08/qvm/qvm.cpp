@@ -7,6 +7,7 @@ using namespace std;
 string input_file;
 string output_file;
 string input_file_no_suffix;
+string functionName = "null";
 
 //设置str没有后缀为input_file_no_suffix
 static void erase_file_suffix(string str){
@@ -69,13 +70,16 @@ int main(int argc, char const *argv[])
         cw.writePushPop(C_POP, p.arg1(),p.arg2());
         break;
       case C_LABEL:
-        out<<"label,"<<p.arg1()<<endl;
+        // out<<"label,"<<p.arg1()<<endl;
+        cw.writeLabel(p.arg1());
         break;
       case C_GOTO:
-        out<<"goto,"<<p.arg1()<<endl;
+        // out<<"goto,"<<p.arg1()<<endl;
+        cw.writeGoto(p.arg1());
       break;
       case C_IF:
-        out<<"if,"<<p.arg1()<<endl;
+        // out<<"if,"<<p.arg1()<<endl;
+        cw.writeIf(p.arg1());
         break;
       case C_FUNCTION:
         out<<"function,"<<p.arg1()<<","<<p.arg2()<<endl;
