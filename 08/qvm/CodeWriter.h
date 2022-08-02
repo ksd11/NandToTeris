@@ -17,6 +17,11 @@ public:
   void writeLabel(string label);
   void writeGoto(string label);
   void writeIf(string label);
+  void writeCall(string functionName, string numArgs);
+  void writeReturn();
+  void writeFunction(string functionName, string numLocals);
+  void writeInit();
+  void writeString(string str);
   // void close();
 private:
   ofstream out;
