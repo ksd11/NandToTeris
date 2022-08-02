@@ -122,7 +122,7 @@ void CodeWriter::writeArithmetic(string command){
 }
  
 
-//D = (*label+off)
+//D = *(*label+off)
 static string m_to_d(string label, string off){
   return "@"+label+"\n"
          "D=M\n"
@@ -131,42 +131,11 @@ static string m_to_d(string label, string off){
          "D=M\n";
 }
 
-//D = (*label)
+//D = *(*label)
 static string m_to_d(string label){
   return "@"+label+"\n"
+         "A=M\n"
          "D=M\n";
-}
-
-//(*label+off) = D
-static string d_to_m(string label, string off){
-  return "@14\n"
-         "M=D\n"
-         "@"+label+"\n"
-         "D=M\n"
-         "@"+off+"\n"
-         "D=D+A"+"\n"
-         "@13\n"
-         "M=D\n"
-         "@14\n"
-         "D=M\n"
-         "@13\n"
-         "A=M\n"
-         "M=D\n";
-}
-
-//(off) = D
-static string d_to_m(string off){
-  return "@14\n"
-         "M=D\n"
-         "@"+off+"\n"
-         "D=A"+"\n"
-         "@13\n"
-         "M=D\n"
-         "@14\n"
-         "D=M\n"
-         "@13\n"
-         "A=M\n"
-         "M=D\n";
 }
 
 // push d
@@ -178,14 +147,29 @@ static string push_d_to_stack(){
          "M=M+1\n";
 }
 
-//push (*label)
-static string push_d_to_stack(string label){
+//push *(*label)
+static string push_to_stack(string label){
   return m_to_d(label)+push_d_to_stack();
 }
 
-//push (*label+off)
-static string push_d_to_stack(string label, string off){
+//push *(*label+off)
+static string push_to_stack(string label, string off){
   return m_to_d(label,off)+push_d_to_stack();
+}
+
+//push *label
+static string push_to_stack_label(string label){
+  return "@"+label+"\n"
+         "D=M\n" + push_d_to_stack();
+}
+
+//only constant 0 or 1
+static string push_constant_to_stack(string c){
+  return "@SP\n"
+         "A=M\n"
+         "M="+c+"\n"
+         "@SP\n"
+         "M=M+1\n";
 }
  
 
@@ -195,18 +179,9 @@ static string pop_d_from_stack(){
          "D=M\n";
 }
 
-// pop(*label+off)
-static string pop_from_stack(string label, string off){
-  return  pop_d_from_stack()+d_to_m(label,off);
-}
-
-// pop(off)
-static string pop_from_stack(string off){
-  return pop_d_from_stack()+d_to_m(off);
-}
-
 //只借助r13寄存器进行pop
-static string pop_from_stack_only_r13(string label, string off){
+// *(*label+off) 
+static string pop_from_stack(string label, string off){
   return "@"+label+"\n"
          "D=M\n"
          "@"+off+"\n"
@@ -219,10 +194,31 @@ static string pop_from_stack_only_r13(string label, string off){
          "M=D\n";
 }
 
+// *(off)
+static string pop_from_stack(string off){
+  return "@"+off+"\n"
+         "D=A"+"\n"
+         "@13\n"
+         "M=D\n"
+         +pop_d_from_stack()+
+         "@13\n"
+         "A=M\n"
+         "M=D\n";
+}
+
+// *(*label)
+static string pop_from_stack_label(string label){
+  return pop_d_from_stack()+
+         "@"+label+"\n"
+         "A=M\n"
+         "M=D\n";
+}
+
 
 //calc addr  ex. SP+1  、 ARG+1
 static string calc_addr_to_d(string label, string n,string op){
-  return m_to_d(label) +
+  return "@" + label +"\n"
+         "D=M\n"
          "@"+n+"\n"
          "D=D"+op+"A\n";
 }
@@ -244,7 +240,7 @@ static string write_label_to_d(string label){
 }
 
 //push value
-static string push_to_stack(string value){
+static string push_to_stack_value(string value){
   return "@"+value+"\n"
          "D=A\n"+push_d_to_stack();
 }
@@ -255,20 +251,34 @@ void CodeWriter::writePushPop(CType c, string segment,string index){
   switch(c){
     case C_PUSH:
       if(segment=="constant"){
-        out << "@"+index+"\n"
-                "D=A\n" + push_d_to_stack();
+        if(index=="0" || index=="1")
+          out << push_constant_to_stack(index);
+        else
+          out << push_to_stack_value(index);
 
       }else if(segment=="local"){
-        out << push_d_to_stack("LCL", index);
+        if(index=="0")
+          out << push_to_stack("LCL");
+        else
+          out << push_to_stack("LCL", index);
 
       }else if(segment=="argument"){
-        out << push_d_to_stack("ARG", index);
+        if(index=="0")
+          out << push_to_stack("ARG");
+        else
+          out << push_to_stack("ARG", index);
 
       }else if(segment=="this"){
-        out << push_d_to_stack("THIS", index);
+        if(index=="0")
+          out << push_to_stack("THIS");
+        else
+          out << push_to_stack("THIS", index);
 
       }else if(segment=="that"){
-        out << push_d_to_stack("THAT", index);
+        if(index=="0")
+          out << push_to_stack("THAT");
+        else
+          out << push_to_stack("THAT", index);
 
       }else if(segment == "pointer"){
         index = index=="0"?"3":"4";
@@ -289,20 +299,32 @@ void CodeWriter::writePushPop(CType c, string segment,string index){
       break;
     case C_POP:
       if(segment=="local"){
-        out << pop_from_stack("LCL", index);
+        if(index=="0")
+          out << pop_from_stack_label("LCL");  // 为了省一点空间
+        else
+          out << pop_from_stack("LCL",index);
 
       }else if(segment=="argument"){
-        out << pop_from_stack("ARG", index);
+        if(index=="0")
+          out << pop_from_stack_label("ARG");
+        else
+          out << pop_from_stack("ARG", index);
 
       }else if(segment=="this"){
-        out << pop_from_stack("THIS", index);
+        if(index=="0")
+          out << pop_from_stack_label("THIS");
+        else
+          out << pop_from_stack("THIS", index);
 
       }else if(segment=="that"){
-        out << pop_from_stack("THAT", index);
+        if(index=="0")
+          out << pop_from_stack_label("THAT");
+        else
+          out << pop_from_stack("THAT", index);
 
       }else if(segment == "pointer"){
         index = index=="0"?"3":"4";
-        out << pop_from_stack(index);;
+        out << pop_from_stack(index);
       }else if(segment == "temp"){
         sscanf(index.c_str(), "%hu", &idx);
         index = to_string(idx+5);
@@ -348,11 +370,11 @@ void CodeWriter::writeCall(string functionName, string numArgs){
   uint16_t n ;
   sscanf(numArgs.c_str(), "%hu", &n);
   string symbol = generalSymbol();
-  out << push_to_stack(symbol) +   //push return-address
-         push_d_to_stack("LCL") +    //push LCL
-         push_d_to_stack("ARG") +    //push ARG
-         push_d_to_stack("THIS") +   //push THIS
-         push_d_to_stack("THAT") +   //push THAT
+  out << push_to_stack_value(symbol) +   //push return-address
+         push_to_stack_label("LCL") +    //push LCL
+         push_to_stack_label("ARG") +    //push ARG
+         push_to_stack_label("THIS") +   //push THIS
+         push_to_stack_label("THAT") +   //push THAT
          calc_addr_to_d("SP", to_string(n+5), "-") + //D=SP-n-5
          write_d_to_label("ARG") +
          write_label_to_d("SP") +
@@ -373,7 +395,7 @@ void CodeWriter::writeReturn(){
         from_d_get_value() +
         write_d_to_label(ret) +
 
-        pop_from_stack_only_r13("ARG","0") +
+        pop_from_stack_label("ARG") +
         calc_addr_to_d("ARG","1","+") +
         write_d_to_label("SP") +              //SP=ARG+1
 
@@ -412,7 +434,7 @@ void CodeWriter::writeFunction(string functionName, string numLocals){
         "D; JEQ\n" 
         "@R13\n"
         "M=D\n" +
-        push_to_stack("0") +
+        push_to_stack_value("0") +
         "@R13\n"
         "D=M-1\n"
         "@"+symbol+"\n"

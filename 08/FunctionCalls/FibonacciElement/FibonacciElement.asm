@@ -75,9 +75,7 @@ D=M-1
 0; JMP
 (jump.qvm.build.2)
 @ARG
-D=M
-@0
-A=D+A
+A=M
 D=M
 @SP
 A=M
@@ -112,9 +110,7 @@ D; JNE
 0; JMP
 (Main.fibonacci$IF_TRUE)
 @ARG
-D=M
-@0
-A=D+A
+A=M
 D=M
 @SP
 A=M
@@ -133,16 +129,10 @@ A=D
 D=M
 @R15
 M=D
-@ARG
-D=M
-@0
-D=D+A
-@13
-M=D
 @SP
 AM=M-1
 D=M
-@13
+@ARG
 A=M
 M=D
 @ARG
@@ -188,9 +178,7 @@ A=M
 0; JMP
 (Main.fibonacci$IF_FALSE)
 @ARG
-D=M
-@0
-A=D+A
+A=M
 D=M
 @SP
 A=M
@@ -258,20 +246,16 @@ M=D
 0; JMP
 (jump.qvm.build.4)
 @ARG
-D=M
-@0
-A=D+A
+A=M
 D=M
 @SP
 A=M
 M=D
 @SP
 M=M+1
-@1
-D=A
 @SP
 A=M
-M=D
+M=1
 @SP
 M=M+1
 @SP
@@ -344,16 +328,10 @@ A=D
 D=M
 @R15
 M=D
-@ARG
-D=M
-@0
-D=D+A
-@13
-M=D
 @SP
 AM=M-1
 D=M
-@13
+@ARG
 A=M
 M=D
 @ARG

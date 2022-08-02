@@ -1,5 +1,4 @@
 
-
 // ../FunctionCalls/SimpleFunction/SimpleFunction.vm
 (SimpleFunction.test)
 @2
@@ -22,9 +21,7 @@ D=M-1
 0; JMP
 (jump.qvm.build.2)
 @LCL
-D=M
-@0
-A=D+A
+A=M
 D=M
 @SP
 A=M
@@ -50,9 +47,7 @@ M=M+D
 A=M-1
 M=!M
 @ARG
-D=M
-@0
-A=D+A
+A=M
 D=M
 @SP
 A=M
@@ -81,30 +76,20 @@ A=A-1
 M=M-D
 @LCL
 D=M
-@R5
+@R14
 M=D
-@R5
+@R14
 D=M
 @5
 D=D-A
 A=D
 D=M
-@R6
+@R15
 M=D
 @SP
 AM=M-1
 D=M
-@14
-M=D
 @ARG
-D=M
-@0
-D=D+A
-@13
-M=D
-@14
-D=M
-@13
 A=M
 M=D
 @ARG
@@ -113,7 +98,7 @@ D=M
 D=D+A
 @SP
 M=D
-@R5
+@R14
 D=M
 @1
 D=D-A
@@ -121,7 +106,7 @@ A=D
 D=M
 @THAT
 M=D
-@R5
+@R14
 D=M
 @2
 D=D-A
@@ -129,7 +114,7 @@ A=D
 D=M
 @THIS
 M=D
-@R5
+@R14
 D=M
 @3
 D=D-A
@@ -137,7 +122,7 @@ A=D
 D=M
 @ARG
 M=D
-@R5
+@R14
 D=M
 @4
 D=D-A
@@ -145,6 +130,6 @@ A=D
 D=M
 @LCL
 M=D
-@R6
+@R15
 A=M
 0; JMP
