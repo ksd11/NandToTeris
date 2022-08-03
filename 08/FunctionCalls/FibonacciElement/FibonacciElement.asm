@@ -55,25 +55,6 @@ M=D
 
 // ../FunctionCalls/FibonacciElement/Main.vm
 (Main.fibonacci)
-@0
-D=A
-(jump.qvm.build.1)
-@jump.qvm.build.2
-D; JEQ
-@R13
-M=D
-@0
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@R13
-D=M-1
-@jump.qvm.build.1
-0; JMP
-(jump.qvm.build.2)
 @ARG
 A=M
 D=M
@@ -95,12 +76,12 @@ D=M
 A=A-1
 D=M-D
 M=-1
-@jump.qvm.build.3
+@jump.qvm.build.1
 D; JLT
 @SP
 A=M-1
 M=0
-(jump.qvm.build.3)
+(jump.qvm.build.1)
 @SP
 AM=M-1
 D=M
@@ -197,7 +178,7 @@ AM=M-1
 D=M
 A=A-1
 M=M-D
-@jump.qvm.build.4
+@jump.qvm.build.2
 D=A
 @SP
 A=M
@@ -244,7 +225,7 @@ D=M
 M=D
 @Main.fibonacci
 0; JMP
-(jump.qvm.build.4)
+(jump.qvm.build.2)
 @ARG
 A=M
 D=M
@@ -263,7 +244,7 @@ AM=M-1
 D=M
 A=A-1
 M=M-D
-@jump.qvm.build.5
+@jump.qvm.build.3
 D=A
 @SP
 A=M
@@ -310,7 +291,7 @@ D=M
 M=D
 @Main.fibonacci
 0; JMP
-(jump.qvm.build.5)
+(jump.qvm.build.3)
 @SP
 AM=M-1
 D=M
@@ -379,25 +360,6 @@ A=M
 
 // ../FunctionCalls/FibonacciElement/Sys.vm
 (Sys.init)
-@0
-D=A
-(jump.qvm.build.6)
-@jump.qvm.build.7
-D; JEQ
-@R13
-M=D
-@0
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@R13
-D=M-1
-@jump.qvm.build.6
-0; JMP
-(jump.qvm.build.7)
 @4
 D=A
 @SP
@@ -405,7 +367,7 @@ A=M
 M=D
 @SP
 M=M+1
-@jump.qvm.build.8
+@jump.qvm.build.4
 D=A
 @SP
 A=M
@@ -452,7 +414,7 @@ D=M
 M=D
 @Main.fibonacci
 0; JMP
-(jump.qvm.build.8)
+(jump.qvm.build.4)
 (Sys.init$WHILE)
 @Sys.init$WHILE
 0; JMP

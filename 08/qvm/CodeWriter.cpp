@@ -171,6 +171,29 @@ static string push_constant_to_stack(string c){
          "@SP\n"
          "M=M+1\n";
 }
+
+//连续push相同的constant   n>=1
+static string push_constant_to_stack_n_times(string c, int n){
+  if(n==0) return "";
+  string s="";
+  if(c!="0" && c!="1"){
+    s += "@"+c+"\n"
+         "D=A\n";
+    c = "D";
+  }
+
+  s += "@SP\n"
+       "A=M\n"
+       "M="+c+"\n";
+
+  for(int i=2;i<=n;i++){
+    s += "@SP\n"
+          "AM=M+1\n"
+          "M="+c+"\n";
+  }
+
+  return s + "@SP\nM=M+1\n";
+}
  
 
 static string pop_d_from_stack(){
@@ -251,11 +274,8 @@ void CodeWriter::writePushPop(CType c, string segment,string index){
   switch(c){
     case C_PUSH:
       if(segment=="constant"){
-        if(index=="0" || index=="1")
-          out << push_constant_to_stack(index);
-        else
-          out << push_to_stack_value(index);
-
+        extern int constant_times;
+        out << push_constant_to_stack_n_times(index, constant_times);
       }else if(segment=="local"){
         if(index=="0")
           out << push_to_stack("LCL");
@@ -422,24 +442,12 @@ void CodeWriter::writeReturn(){
 
 
 void CodeWriter::writeFunction(string functionName, string numLocals){
-  string symbol = generalSymbol();
-  string symbol2 = generalSymbol();
+  extern int constant_times;
+  sscanf(numLocals.c_str(),"%d", &constant_times); 
 
-
-  out<< "("+functionName+")\n"
-        "@"+numLocals+"\n"
-        "D=A\n"
-        "("+symbol+")\n"
-        "@"+symbol2+"\n"
-        "D; JEQ\n" 
-        "@R13\n"
-        "M=D\n" +
-        push_to_stack_value("0") +
-        "@R13\n"
-        "D=M-1\n"
-        "@"+symbol+"\n"
-        "0; JMP\n"
-        "("+symbol2+")\n";
+  out<< "("+functionName+")\n" +
+        push_constant_to_stack_n_times("0", constant_times);
+  constant_times = 1;
 }
 
 // 设置sp，跳转到Sys.init
