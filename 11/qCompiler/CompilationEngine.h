@@ -6,6 +6,7 @@
 #include<fstream>
 #include"JackTokenizer.h"
 #include<set>
+#include"SymbolTable.h"
 using namespace std;
 
 class CompilationEngine{
@@ -30,6 +31,7 @@ public:
 private:
   JackTokenizer* jk;
   ofstream out;
+  SymbolTable* st;
   void readToken();
   void readToken_symbol(char ch);
   void readToken_identifier();

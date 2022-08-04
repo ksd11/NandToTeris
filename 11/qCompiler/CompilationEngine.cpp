@@ -5,11 +5,13 @@
 CompilationEngine::CompilationEngine(string input_file,string output_file){
   jk = new JackTokenizer(input_file);
   out.open(output_file);
+  st = new SymbolTable();
 }
 
 CompilationEngine::~CompilationEngine(){
   delete jk;
   out.close();
+  delete st;
 }
 
 static bool rollback = false;

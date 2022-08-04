@@ -25,7 +25,7 @@ void SymbolTable::define(string name,string type,SymbolKind kind){
     cout<<name<< " is defined.\n"<<endl;
     exit(1);
   }
-  scope->insert(name,{type,kind,idx});
+  scope->insert({name,{type,kind,idx}});
 }
 
 int SymbolTable::varCount(SymbolKind kind){
@@ -48,6 +48,7 @@ Variable& SymbolTable::findVar(string name){
     return (*global_scope)[name];
   }else{
     cout<<"variable: "<<name<<" is undefined.\n";
+    exit(1);
   }
 }
 
