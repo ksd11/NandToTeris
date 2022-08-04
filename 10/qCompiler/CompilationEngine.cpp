@@ -1,40 +1,6 @@
-#include<string>
-#include<fstream>
-#include"JackTokenizer.h"
-#include<set>
-using namespace std;
+#include"CompilationEngine.h"
 
-class CompilationEngine{
-public:
-  CompilationEngine(string input_file,string output_file);
-  ~CompilationEngine();
-  void compileClass();
-  void compileClassVarDec();
-  void compileSubroutine();
-  void compileParameterList();
-  void compileVarDec(); 
-  void compileStatements();
-  void compileDo();
-  void compileLet();
-  void compileWhile();
-  void compileReturn();
-  void compileIf();
-  void compileExpression();
-  void compileTerm();
-  void compileExpressionList();
-
-private:
-  JackTokenizer* jk;
-  ofstream out;
-  void readToken();
-  void readToken_symbol(char ch);
-  void readToken_identifier();
-  void readToken_keyword(set<string> kws);
-  void readToken_keyword(string kw);
-  bool is_symbol(char ch);
-  bool is_keyword(string kw);
-  int type();
-};
+#define BUILD_XML
 
 CompilationEngine::CompilationEngine(string input_file,string output_file){
   jk = new JackTokenizer(input_file);
@@ -101,29 +67,77 @@ bool CompilationEngine::is_keyword(string kw){
   return jk->tokenType()==KEYWORD && jk->keyword()==kw;
 }
 
+void CompilationEngine::writeXml(TokenType t){
+#ifdef BUILD_XML
+  string sb;
+  switch(t){
+    case KEYWORD:
+      out<<"<keyword> "+jk->keyword()+" </keyword>"<<endl;
+      break;
+    case IDENTIFIER:
+      out<<"<identifier> "+jk->identifier()+" </identifier>"<<endl;
+      break;
+    case SYMBOL:
+      sb += jk->symbol();
+      if(jk->symbol()=='<') sb="&lt;";
+      else if(jk->symbol()== '>') sb="&gt;";
+      else if(jk->symbol()== '&') sb="&amp;";
+
+      out<<"<symbol> "+sb+" </symbol>"<<endl;
+      break;
+    case INT_CONST:
+      out<<"<integerConstant> ";
+      out<<jk->intVal();
+      out<<" </integerConstant>"<<endl;
+      break;
+    case STRING_CONST:
+      out<<"<stringConstant> "+jk->stringVal()+" </stringConstant>"<<endl;
+  }
+#endif
+}
+
+void CompilationEngine::writeXml(string str){
+#ifdef BUILD_XML
+  out<<str<<endl;
+#endif
+}
 
 /******* 上面都是helper函数 **/
 
 void CompilationEngine::compileClass(){
-  readToken_keyword("class");
-  readToken_identifier();
-  readToken_symbol('{');
+  writeXml("<class>");
+
+  readToken_keyword("class"); // 'class'
+  writeXml(KEYWORD);
+
+  readToken_identifier();  // className
+  writeXml(IDENTIFIER);
+
+  readToken_symbol('{'); // '{'
+  writeXml(SYMBOL);
   
-  readToken();
+  readToken(); // classVarDec*
   while(jk->tokenType()==KEYWORD && (jk->keyword()=="static" || jk->keyword()=="field")){
+    writeXml("<classVarDec>");
     rollback = true;
     compileClassVarDec();
+    writeXml("</classVarDec>");
     readToken();
   }
 
+  // subroutineDec*
   while(jk->tokenType()==KEYWORD && (jk->keyword()=="constructor"||jk->keyword()=="function"||jk->keyword()=="method")){
+    writeXml("<subroutineDec>");
     rollback = true;
     compileSubroutine();
+    writeXml("</subroutineDec>");
     readToken();
   }
 
   rollback = true;
-  readToken_symbol('}');
+  readToken_symbol('}'); // '}'
+  writeXml(SYMBOL);
+  writeXml("</class>");
 }
 
 int CompilationEngine::type(){
@@ -137,51 +151,77 @@ int CompilationEngine::type(){
 } 
 
 void CompilationEngine::compileClassVarDec(){
-  readToken_keyword(set<string>({"static","field"}));
+  readToken_keyword(set<string>({"static","field"}));//(‘static’|'field')
+  writeXml(KEYWORD);
 
   readToken(); //type
-  if(type()){
+  if(int t = type()){
+    if(t == 1) writeXml(KEYWORD);
+    else writeXml(IDENTIFIER);
+
     readToken_identifier(); //varname
+    writeXml(IDENTIFIER);
 
     readToken();
     while(is_symbol(',')){
+      writeXml(SYMBOL);
       readToken_identifier(); // varName
+      writeXml(IDENTIFIER);
       readToken();
     }
     rollback = true;
     readToken_symbol(';');
+    writeXml(SYMBOL);
   }else{
     cout<<"compile classVarDec error...\n";
   }
 }
 
-
-
 void CompilationEngine::compileSubroutine(){
   static set<string> statements = {"let","if","else","while","do","return"}; 
 
   readToken_keyword(set<string>({"constructor","function","method"}));
+  writeXml(KEYWORD);
 
   readToken();
-  if(type() || (jk->tokenType()==KEYWORD && jk->keyword()=="void")){
-    readToken_identifier(); // name
+  int t = type();
+  if(t || (jk->tokenType()==KEYWORD && jk->keyword()=="void")){
+    if(t==1 || (jk->tokenType()==KEYWORD && jk->keyword()=="void")) writeXml(KEYWORD);
+    else writeXml(IDENTIFIER);
+
+    readToken_identifier(); // subroutineName
+    writeXml(IDENTIFIER);
+
     readToken_symbol('(');
+    writeXml(SYMBOL);
+
+    writeXml("<parameterList>");
     compileParameterList();
+    writeXml("</parameterList>");
 
     readToken_symbol(')');
+    writeXml(SYMBOL);
+
+    writeXml("<subroutineBody>");
     readToken_symbol('{');
+    writeXml(SYMBOL);
     //varDec* 
     readToken();
     while(jk->tokenType()==KEYWORD && jk->keyword()=="var"){
+      writeXml("<varDec>");
       rollback = true;
       compileVarDec();
+      writeXml("</varDec>");
       readToken();
     }
     // statements
     rollback = true;
+    writeXml("<statements>");
     compileStatements();
-
+    writeXml("</statements>");
     readToken_symbol('}');
+    writeXml(SYMBOL);
+    writeXml("</subroutineBody>");
 
   }else{
     cout<<"compile subroutine error...\n";
@@ -192,10 +232,16 @@ void CompilationEngine::compileSubroutine(){
 //((type varName)(',' type varName)*)?
 void CompilationEngine::compileParameterList(){
   readToken();  // type
-  while(type()){
+  while(int t = type()){
+    if(t==1) writeXml(KEYWORD);
+    else writeXml(IDENTIFIER);
+
     readToken_identifier();
+    writeXml(IDENTIFIER);
+
     readToken();
     if(jk->tokenType()==SYMBOL && jk->symbol()==','){
+      writeXml(SYMBOL);
       readToken();
     }else{
       rollback = true;
@@ -209,16 +255,25 @@ void CompilationEngine::compileParameterList(){
 // 'var' type varName (',' varName)* ';'
 void CompilationEngine::compileVarDec(){
   readToken_keyword("var");
+  writeXml(KEYWORD);
+
   readToken();
-  if(type()){
+  if(int t = type()){
+    if(t==1) writeXml(KEYWORD);
+    else writeXml(IDENTIFIER);
     readToken_identifier();
+    writeXml(IDENTIFIER);
     readToken();
     while(jk->tokenType()==SYMBOL && jk->symbol()==','){
+      writeXml(SYMBOL);
       readToken_identifier();
+      writeXml(IDENTIFIER);
+      readToken();
     }
 
     rollback = true;
     readToken_symbol(';');
+    writeXml(SYMBOL);
   }else{
     cout<<"compile VarDec error...\n";
   }
@@ -230,19 +285,29 @@ void CompilationEngine::compileStatements(){
     readToken();
     if(jk->tokenType()==KEYWORD && jk->keyword()=="let"){
       rollback = true;
+      writeXml("<letStatement>");
       compileLet();
+      writeXml("</letStatement>");
     }else if(jk->tokenType()==KEYWORD && jk->keyword()=="if"){
       rollback = true;
+      writeXml("<ifStatement>");
       compileIf();
+      writeXml("</ifStatement>");
     }else if(jk->tokenType()==KEYWORD && jk->keyword()=="while"){
       rollback = true;
+      writeXml("<whileStatement>");
       compileWhile();
+      writeXml("</whileStatement>");
     }else if(jk->tokenType()==KEYWORD && jk->keyword()=="do"){
       rollback = true;
+      writeXml("<doStatement>");
       compileDo();
+      writeXml("</doStatement>");
     }else if(jk->tokenType()==KEYWORD && jk->keyword()=="return"){
       rollback = true;
+      writeXml("<returnStatement>");
       compileReturn();
+      writeXml("</returnStatement>");
     }else{
       rollback = true;
       return;
@@ -254,117 +319,234 @@ void CompilationEngine::compileStatements(){
 // 'do' subroutineCall ';'
 void CompilationEngine::compileDo(){
   readToken_keyword("do");
+  writeXml(KEYWORD);
   readToken_identifier(); //subroutineName / class/var
+  writeXml(IDENTIFIER);
 
   readToken();
   rollback = true;
   if(jk->tokenType()==SYMBOL && jk->symbol()=='.'){
     readToken_symbol('.');
+    writeXml(SYMBOL);
     readToken_identifier();
-    readToken_symbol('(');
-    compileExpressionList(); 
-    readToken_symbol(')');
-  }else{
-    readToken_symbol('(');
-    compileExpressionList();
-    readToken_symbol(')');
+    writeXml(IDENTIFIER);
   }
+  readToken_symbol('(');
+  writeXml(SYMBOL);
+  writeXml("<expressionList>");
+  compileExpressionList();
+  writeXml("</expressionList>");
+  readToken_symbol(')');
+  writeXml(SYMBOL);
 
   readToken_symbol(';');
+  writeXml(SYMBOL);
 }
 
 // 'let' varName ('[' expression ']')? '=' expression ';'
 void CompilationEngine::compileLet(){
   readToken_keyword("let");
+  writeXml(KEYWORD);
+
   readToken_identifier(); // varName
+  writeXml(IDENTIFIER);
   readToken();
   if(is_symbol('[')){
+    writeXml(SYMBOL);
+
+    writeXml("<expression>");
     compileExpression(); 
-    readToken_symbol(']');  
+    writeXml("</expression>");
+
+    readToken_symbol(']');
+    writeXml(SYMBOL);
   }else{
     rollback = true;
   }
   readToken_symbol('=');
+  writeXml(SYMBOL);
+
+  writeXml("<expression>");
   compileExpression();
+  writeXml("</expression>");
+
   readToken_symbol(';');
+  writeXml(SYMBOL);
 }
 
 void CompilationEngine::compileWhile(){
   readToken_keyword("while");
+  writeXml(KEYWORD);
   readToken_symbol('(');
+  writeXml(SYMBOL);
+  writeXml("<expression>");
   compileExpression();
+  writeXml("</expression>");
   readToken_symbol(')');
+  writeXml(SYMBOL);
   readToken_symbol('{');
+  writeXml(SYMBOL);
+  writeXml("<statements>");
   compileStatements();
+  writeXml("</statements>");
   readToken_symbol('}');
+  writeXml(SYMBOL);
 }
 
 void CompilationEngine::compileReturn(){
   readToken_keyword("return");
+  writeXml(KEYWORD);
   readToken();
   if(is_symbol(';')){
+    writeXml(SYMBOL);
     return;
   }
   rollback = true;
+  writeXml("<expression>");
   compileExpression();
+  writeXml("</expression>");
   readToken_symbol(';');
+  writeXml(SYMBOL);
 }
 
 void CompilationEngine::compileIf(){
   readToken_keyword("if");
+  writeXml(KEYWORD);
   readToken_symbol('(');
+  writeXml(SYMBOL);
+  writeXml("<expression>");
   compileExpression();
+  writeXml("</expression>");
   readToken_symbol(')');
+  writeXml(SYMBOL);
   readToken_symbol('{');
+  writeXml(SYMBOL);
+  writeXml("<statements>");
   compileStatements();
+  writeXml("</statements>");
   readToken_symbol('}');
+  writeXml(SYMBOL);
 
   readToken();  //预取后一个token
   if(is_keyword("else")){
+    writeXml(KEYWORD);
     readToken_symbol('{');
+    writeXml(SYMBOL);
+    writeXml("<statements>");
     compileStatements();
+    writeXml("</statements>");
     readToken_symbol('}');
+    writeXml(SYMBOL);
   }else{
     rollback = true;
   }
 }
 
-
+//term (op term)*
 void CompilationEngine::compileExpression(){
+  static set<char> ops = {
+    '+','-','*','/','&','|','<','>','='
+  };
+  writeXml("<term>");
+  compileTerm();
+  writeXml("</term>");
+
   readToken();
-  if(jk->tokenType() == IDENTIFIER || jk->tokenType()==KEYWORD){
-    return;  
+  if(jk->tokenType()==SYMBOL && ops.count(jk->symbol())){
+    writeXml(SYMBOL);
+    writeXml("<term>");
+    compileTerm();
+    writeXml("</term>");
+    readToken();
   }
-  // readToken_identifier();
-  cout<<"illegal expression\n";
-  exit(1);
+  rollback = true;
 }
 
 void CompilationEngine::compileTerm(){
+  static set<string> keyword_constant = {
+    "true","false","null","this"
+  };
+  readToken();
+  switch(jk->tokenType()){
+    case IDENTIFIER: 
+      writeXml(IDENTIFIER);
+      readToken();
+      if(is_symbol('[')){ //varName '[' expression ']'
+        writeXml(SYMBOL);
+        writeXml("<expression>");
+        compileExpression();
+        writeXml("</expression>");
+        readToken_symbol(']');
+        writeXml(SYMBOL);
+      }else if(is_symbol('.') || is_symbol('(')){ //subroutineCall
+        if(is_symbol('.')){
+          writeXml(SYMBOL);
+          readToken_identifier();
+          writeXml(IDENTIFIER);
+        }else{
+          rollback = true;
+        }
+        readToken_symbol('(');
+        writeXml(SYMBOL);
+        writeXml("<expressionList>");
+        compileExpressionList();
+        writeXml("</expressionList>");
+        readToken_symbol(')');
+        writeXml(SYMBOL);
+      }else{ //varName
+        rollback = true;
+      }
+      return;
+    case KEYWORD: // integerConstant
+      if(!keyword_constant.count(jk->keyword())){
+        cout<<"illegal term-keyword error: "<<jk->keyword()<<endl;
+        exit(1);
+      }
+      writeXml(KEYWORD);
+      return;
+    case INT_CONST: // int const
+      writeXml(INT_CONST);
+      return;
+    case STRING_CONST: //string const
+      writeXml(STRING_CONST);
+      return;
+    case SYMBOL:
+      char sb = jk->symbol();
+      if(sb == '('){ // '(' expression ')'
+        writeXml(SYMBOL);
+        writeXml("<expression>");
+        compileExpression();
+        writeXml("</expression>");
+        readToken_symbol(')');
+        writeXml(SYMBOL);
+      }else if(sb=='-' || sb=='~'){ // unaryOp term
+        writeXml(SYMBOL);
+        writeXml("<term>");
+        compileTerm();
+        writeXml("</term>");
+      }
+      return;
 
+  }
+  cout<<"illegal term\n";
+  exit(1);
 }
 
 void CompilationEngine::compileExpressionList(){
   readToken();
   if(!is_symbol(')')){
     rollback = true;
+    writeXml("<expression>");
     compileExpression();
+    writeXml("</expression>");
     readToken();
     while(is_symbol(',')){
+      writeXml(SYMBOL);
+      writeXml("<expression>");
       compileExpression();
+      writeXml("</expression>");
       readToken();
     }
   }
   rollback = true;
 }
-
-int main(int argc, char const *argv[])
-{
-  string in = "../test/ExpressionLessSquare/SquareGame.jack";
-  string out = "../test/ExpressionLessSquare/Main.xml";
-  CompilationEngine ce(in, out);
-  ce.compileClass();
-  return 0;
-}
-
-

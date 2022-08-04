@@ -1,28 +1,17 @@
 #include<iostream>
 #include"JackTokenizer.h"
 #include"ParsePath.h"
+#include"CompilationEngine.h"
 using namespace std;
 
 static string input_file;
 static string output_file;
 
-
-int main(int argc, char* argv[]){
-  if(argc != 2){
-    cout<<"usage: prog jack/path\n";
-    exit(1);
-  }
-
-  path_init(argv[1],output_file);
-  
-
-  while(hasNextFile()){
-    input_file = nextFile(output_file);
-    ofstream out(output_file);
-    JackTokenizer jk(input_file);
-    cout<<"parsing "<<input_file<<"..."<<endl;
-
-    out<<"<tokens>"<<endl;
+void pharse1(){
+  ofstream out(output_file);
+  JackTokenizer jk(input_file);
+  cout<<"parsing "<<input_file<<"..."<<endl;
+  out<<"<tokens>"<<endl;
 
     while(jk.hasMoreTokens()){
       jk.advance();
@@ -66,5 +55,26 @@ int main(int argc, char* argv[]){
 
     }
     out<<"</tokens>"<<endl;
+}
+
+void pharse2_1(){
+  cout<<"parsing "<<input_file<<"..."<<endl;
+  CompilationEngine ce(input_file, output_file);
+  ce.compileClass();
+}
+
+int main(int argc, char* argv[]){
+  if(argc != 2){
+    cout<<"usage: prog jack/path\n";
+    exit(1);
+  }
+
+  path_init(argv[1],output_file);
+  
+
+  while(hasNextFile()){
+    input_file = nextFile(output_file);
+    // pharse1();
+    pharse2_1();
   }
 }
