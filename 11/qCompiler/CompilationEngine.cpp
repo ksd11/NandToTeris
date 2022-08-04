@@ -1,6 +1,6 @@
 #include"CompilationEngine.h"
 
-#define BUILD_XML
+// #define BUILD_XML
 
 CompilationEngine::CompilationEngine(string input_file,string output_file){
   jk = new JackTokenizer(input_file);
@@ -126,14 +126,17 @@ void CompilationEngine::compileClass(){
     writeXml("</classVarDec>");
     readToken();
   }
+  st->printGlobalTable();
 
   // subroutineDec*
   while(jk->tokenType()==KEYWORD && (jk->keyword()=="constructor"||jk->keyword()=="function"||jk->keyword()=="method")){
     writeXml("<subroutineDec>");
+    st->startSubroutine();
     rollback = true;
     compileSubroutine();
     writeXml("</subroutineDec>");
     readToken();
+    st->printLocalTable();
   }
 
   rollback = true;
@@ -153,22 +156,36 @@ int CompilationEngine::type(){
 } 
 
 void CompilationEngine::compileClassVarDec(){
+  string var_kind;  //当前变量的kind
+  string var_type;  //当前变量的type
+  string var_name; //当前变量的name  
+
   readToken_keyword(set<string>({"static","field"}));//(‘static’|'field')
   writeXml(KEYWORD);
+  var_kind = jk->keyword();
 
   readToken(); //type
   if(int t = type()){
-    if(t == 1) writeXml(KEYWORD);
-    else writeXml(IDENTIFIER);
+    if(t == 1){
+      writeXml(KEYWORD);
+      var_type = jk->keyword();
+    }else{
+      writeXml(IDENTIFIER);
+      var_type = jk->identifier();
+    } 
 
     readToken_identifier(); //varname
     writeXml(IDENTIFIER);
+    var_name = jk->identifier();
+    st->define(var_name,var_type,var_kind);
 
     readToken();
     while(is_symbol(',')){
       writeXml(SYMBOL);
       readToken_identifier(); // varName
       writeXml(IDENTIFIER);
+      var_name = jk->identifier();
+      st->define(var_name,var_type,var_kind);
       readToken();
     }
     rollback = true;
@@ -233,13 +250,25 @@ void CompilationEngine::compileSubroutine(){
 
 //((type varName)(',' type varName)*)?
 void CompilationEngine::compileParameterList(){
+  string var_type;
+  string var_name;
+  SymbolKind var_kind = ARG;
+
   readToken();  // type
   while(int t = type()){
-    if(t==1) writeXml(KEYWORD);
-    else writeXml(IDENTIFIER);
+    if(t==1){
+      writeXml(KEYWORD);
+      var_type = jk->keyword();
+    } 
+    else{
+      writeXml(IDENTIFIER);
+      var_type = jk->identifier();
+    } 
 
     readToken_identifier();
     writeXml(IDENTIFIER);
+    var_name = jk->identifier();
+    st->define(var_name,var_type,var_kind);
 
     readToken();
     if(jk->tokenType()==SYMBOL && jk->symbol()==','){
@@ -256,20 +285,35 @@ void CompilationEngine::compileParameterList(){
 
 // 'var' type varName (',' varName)* ';'
 void CompilationEngine::compileVarDec(){
+  string var_type;
+  string var_name;
+  SymbolKind var_kind = VAR;
+
   readToken_keyword("var");
   writeXml(KEYWORD);
 
   readToken();
   if(int t = type()){
-    if(t==1) writeXml(KEYWORD);
-    else writeXml(IDENTIFIER);
+    if(t==1){
+      writeXml(KEYWORD);
+      var_type = jk->keyword();
+    } 
+    else{
+      writeXml(IDENTIFIER);
+      var_type = jk->identifier();
+    } 
     readToken_identifier();
     writeXml(IDENTIFIER);
+    var_name = jk->identifier();
+    st->define(var_name,var_type,var_kind);
+
     readToken();
     while(jk->tokenType()==SYMBOL && jk->symbol()==','){
       writeXml(SYMBOL);
       readToken_identifier();
       writeXml(IDENTIFIER);
+      var_name = jk->identifier();
+      st->define(var_name,var_type,var_kind);
       readToken();
     }
 

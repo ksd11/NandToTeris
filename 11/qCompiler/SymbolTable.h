@@ -22,10 +22,14 @@ public:
   ~SymbolTable();
   void startSubroutine();
   void define(string name,string type,SymbolKind kind);
+  void define(string name,string type,string kindstring);
   int varCount(SymbolKind kind);
   SymbolKind kindOf(string name);
   string typeOf(string name);
   int indexOf(string name);
+  void printGlobalTable();
+  void printLocalTable();
+  void printAll();
 private:
   unordered_map<string,Variable>* global_scope;
   unordered_map<string,Variable>* local_scope;
