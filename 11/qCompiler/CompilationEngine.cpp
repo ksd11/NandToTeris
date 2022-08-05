@@ -4,13 +4,19 @@
 
 CompilationEngine::CompilationEngine(string input_file,string output_file){
   jk = new JackTokenizer(input_file);
+#ifdef BUILD_XML
   out.open(output_file);
+#endif
   st = new SymbolTable();
+  vm = new VMWriter(output_file);
 }
 
 CompilationEngine::~CompilationEngine(){
   delete jk;
+#ifdef BUILD_XML
   out.close();
+#endif
+  delete vm;
   delete st;
 }
 
@@ -104,6 +110,13 @@ void CompilationEngine::writeXml(string str){
 #endif
 }
 
+// method/constructor/method -> className.xxx
+static string className;
+
+static string general_label(){
+  static int index = 0;
+  return "qCompiler.build."+ to_string(index++);
+}
 /******* 上面都是helper函数 **/
 
 void CompilationEngine::compileClass(){
@@ -114,6 +127,7 @@ void CompilationEngine::compileClass(){
 
   readToken_identifier();  // className
   writeXml(IDENTIFIER);
+  className = jk->identifier();
 
   readToken_symbol('{'); // '{'
   writeXml(SYMBOL);
@@ -126,7 +140,7 @@ void CompilationEngine::compileClass(){
     writeXml("</classVarDec>");
     readToken();
   }
-  st->printGlobalTable();
+  // st->printGlobalTable();
 
   // subroutineDec*
   while(jk->tokenType()==KEYWORD && (jk->keyword()=="constructor"||jk->keyword()=="function"||jk->keyword()=="method")){
@@ -136,7 +150,7 @@ void CompilationEngine::compileClass(){
     compileSubroutine();
     writeXml("</subroutineDec>");
     readToken();
-    st->printLocalTable();
+    // st->printLocalTable();
   }
 
   rollback = true;
@@ -197,19 +211,24 @@ void CompilationEngine::compileClassVarDec(){
 }
 
 void CompilationEngine::compileSubroutine(){
+  string functionName = className+".";
+  int nArgs = 0; //局部变量的数量
+
   static set<string> statements = {"let","if","else","while","do","return"}; 
 
   readToken_keyword(set<string>({"constructor","function","method"}));
   writeXml(KEYWORD);
+  if(jk->keyword()=="method") nArgs++;
 
   readToken();
   int t = type();
   if(t || (jk->tokenType()==KEYWORD && jk->keyword()=="void")){
-    if(t==1 || (jk->tokenType()==KEYWORD && jk->keyword()=="void")) writeXml(KEYWORD);
+    if(t==1 || (jk->tokenType()==KEYWORD && jk->keyword()=="void")) writeXml(KEYWORD); 
     else writeXml(IDENTIFIER);
 
     readToken_identifier(); // subroutineName
     writeXml(IDENTIFIER);
+    functionName += jk->identifier();
 
     readToken_symbol('(');
     writeXml(SYMBOL);
@@ -229,10 +248,12 @@ void CompilationEngine::compileSubroutine(){
     while(jk->tokenType()==KEYWORD && jk->keyword()=="var"){
       writeXml("<varDec>");
       rollback = true;
-      compileVarDec();
+      nArgs += compileVarDec();
       writeXml("</varDec>");
       readToken();
     }
+    vm->writeFunction(functionName, nArgs);
+
     // statements
     rollback = true;
     writeXml("<statements>");
@@ -252,7 +273,7 @@ void CompilationEngine::compileSubroutine(){
 void CompilationEngine::compileParameterList(){
   string var_type;
   string var_name;
-  SymbolKind var_kind = ARG;
+  string var_kind = "argument";
 
   readToken();  // type
   while(int t = type()){
@@ -284,10 +305,11 @@ void CompilationEngine::compileParameterList(){
 
 
 // 'var' type varName (',' varName)* ';'
-void CompilationEngine::compileVarDec(){
+int CompilationEngine::compileVarDec(){
+  int res = 0;
   string var_type;
   string var_name;
-  SymbolKind var_kind = VAR;
+  string var_kind = "var";
 
   readToken_keyword("var");
   writeXml(KEYWORD);
@@ -306,6 +328,7 @@ void CompilationEngine::compileVarDec(){
     writeXml(IDENTIFIER);
     var_name = jk->identifier();
     st->define(var_name,var_type,var_kind);
+    res++;
 
     readToken();
     while(jk->tokenType()==SYMBOL && jk->symbol()==','){
@@ -314,6 +337,7 @@ void CompilationEngine::compileVarDec(){
       writeXml(IDENTIFIER);
       var_name = jk->identifier();
       st->define(var_name,var_type,var_kind);
+      res++;
       readToken();
     }
 
@@ -322,7 +346,9 @@ void CompilationEngine::compileVarDec(){
     writeXml(SYMBOL);
   }else{
     cout<<"compile VarDec error...\n";
+    exit(1);
   }
+  return res;
 }
 
 // statement*
@@ -364,38 +390,75 @@ void CompilationEngine::compileStatements(){
 
 // 'do' subroutineCall ';'
 void CompilationEngine::compileDo(){
+  string functionName;
+  int nArgs = 0;
+
+  string id1,id2;
   readToken_keyword("do");
   writeXml(KEYWORD);
   readToken_identifier(); //subroutineName / class/var
   writeXml(IDENTIFIER);
+  id1 = jk->identifier();
 
   readToken();
   rollback = true;
   if(jk->tokenType()==SYMBOL && jk->symbol()=='.'){
     readToken_symbol('.');
     writeXml(SYMBOL);
-    readToken_identifier();
+    readToken_identifier(); // functionName
     writeXml(IDENTIFIER);
+    id2 = jk->identifier();
   }
+
+  //下面这段代码确定是 Class.function/var.method/method 的函数调用
+  if(st->isExist(id1)){ //var.method
+    functionName = st->typeOf(id1)+"."+id2;
+    nArgs++;
+    vm->writePush(LOCAL,st->indexOf(id1));
+  }else if(id2!=""){ // Class.function
+    functionName = id1+"."+id2;
+  }else{ // this.method
+    functionName = className+"."+id1;
+    nArgs++;
+    vm->writePush(ARG,0); //push argument 0 --> this
+  }
+
   readToken_symbol('(');
   writeXml(SYMBOL);
   writeXml("<expressionList>");
-  compileExpressionList();
+  nArgs += compileExpressionList();
   writeXml("</expressionList>");
   readToken_symbol(')');
   writeXml(SYMBOL);
 
   readToken_symbol(';');
   writeXml(SYMBOL);
+
+  vm->writeCall(functionName, nArgs);
+  vm->writePop(TEMP,0); //忽略返回值
 }
 
 // 'let' varName ('[' expression ']')? '=' expression ';'
 void CompilationEngine::compileLet(){
+  string segment;
+  int index = 0;
+  bool subindex = false; //是否有 []下标
+
   readToken_keyword("let");
   writeXml(KEYWORD);
 
   readToken_identifier(); // varName
   writeXml(IDENTIFIER);
+
+  string varName = jk->identifier();
+  if(!st->isExist(varName)){
+    cout<<"compile error: "<<jk->identifier()<<" not defined!"<<endl;
+    exit(1);
+  }
+
+  segment = st->kindOf(varName);// field、static、var、argument
+  index = st->indexOf(varName);
+  
   readToken();
   if(is_symbol('[')){
     writeXml(SYMBOL);
@@ -406,6 +469,7 @@ void CompilationEngine::compileLet(){
 
     readToken_symbol(']');
     writeXml(SYMBOL);
+    subindex = true;
   }else{
     rollback = true;
   }
@@ -415,16 +479,48 @@ void CompilationEngine::compileLet(){
   writeXml("<expression>");
   compileExpression();
   writeXml("</expression>");
+  /*
+    a = b => 栈顶 b
+    a[i] = b => 栈顶 b i
+  */
+  if(subindex){ //Array
+    vm->writePop(TEMP, 0);
+    if(segment=="field"){  // field Array a;
+      vm->writePush(ARG,0);
+      vm->writePop(POINTER,0);
+      vm->writePush(THIS,index); //a
+      
+    }else{ 
+      vm->writePush(segment,index);
+    }
+    vm->writeArithmetic('+');  //a[i]
+    vm->writePop(POINTER,1);
+    vm->writePush(TEMP,0);
+    vm->writePop(THAT,0);
+  }else{
+    if(segment=="field"){
+      vm->writePush(ARG,0);
+      vm->writePop(POINTER,0);
+      vm->writePop(THIS,index);
+    }else{
+      vm->writePop(segment,index);
+    }
+  }
 
   readToken_symbol(';');
   writeXml(SYMBOL);
 }
 
 void CompilationEngine::compileWhile(){
+  string l1 = general_label();
+  string l2 = general_label();
+
   readToken_keyword("while");
   writeXml(KEYWORD);
   readToken_symbol('(');
   writeXml(SYMBOL);
+  
+  vm->writeLabel(l1);
   writeXml("<expression>");
   compileExpression();
   writeXml("</expression>");
@@ -432,11 +528,16 @@ void CompilationEngine::compileWhile(){
   writeXml(SYMBOL);
   readToken_symbol('{');
   writeXml(SYMBOL);
+  vm->writeArithmetic('~');
+  vm->writeIf(l2);
+
   writeXml("<statements>");
   compileStatements();
   writeXml("</statements>");
   readToken_symbol('}');
   writeXml(SYMBOL);
+  vm->writeGoto(l1);
+  vm->writeLabel(l2);
 }
 
 void CompilationEngine::compileReturn(){
@@ -445,6 +546,8 @@ void CompilationEngine::compileReturn(){
   readToken();
   if(is_symbol(';')){
     writeXml(SYMBOL);
+    vm->writePush(CONST, 0);  // 返回类型为void必须返回0作为返回值
+    vm->writeReturn();
     return;
   }
   rollback = true;
@@ -453,9 +556,13 @@ void CompilationEngine::compileReturn(){
   writeXml("</expression>");
   readToken_symbol(';');
   writeXml(SYMBOL);
+  vm->writeReturn();
 }
 
 void CompilationEngine::compileIf(){
+  string l1 = general_label();
+  string l2 = general_label();
+
   readToken_keyword("if");
   writeXml(KEYWORD);
   readToken_symbol('(');
@@ -467,12 +574,16 @@ void CompilationEngine::compileIf(){
   writeXml(SYMBOL);
   readToken_symbol('{');
   writeXml(SYMBOL);
+  vm->writeArithmetic('~');
+  vm->writeIf(l1);
   writeXml("<statements>");
   compileStatements();
   writeXml("</statements>");
   readToken_symbol('}');
   writeXml(SYMBOL);
 
+  vm->writeGoto(l2);
+  vm->writeLabel(l1);
   readToken();  //预取后一个token
   if(is_keyword("else")){
     writeXml(KEYWORD);
@@ -486,6 +597,7 @@ void CompilationEngine::compileIf(){
   }else{
     rollback = true;
   }
+  vm->writeLabel(l2);
 }
 
 //term (op term)*
@@ -498,11 +610,19 @@ void CompilationEngine::compileExpression(){
   writeXml("</term>");
 
   readToken();
-  if(jk->tokenType()==SYMBOL && ops.count(jk->symbol())){
+  while(jk->tokenType()==SYMBOL && ops.count(jk->symbol())){
     writeXml(SYMBOL);
+    char op = jk->symbol();
     writeXml("<term>");
     compileTerm();
     writeXml("</term>");
+    if(op=='*'){
+      vm->writeCall("Math.multiply",2);
+    }else if(op=='/'){
+      vm->writeCall("Math.divide",2);
+    }else{
+      vm->writeArithmetic(op);
+    }
     readToken();
   }
   rollback = true;
@@ -513,9 +633,18 @@ void CompilationEngine::compileTerm(){
     "true","false","null","this"
   };
   readToken();
+  string varName;
+  string id;
+  int index;
+  string kind;
+  string kw;
+  string functionName;
+  int nArgs;
+
   switch(jk->tokenType()){
     case IDENTIFIER: 
       writeXml(IDENTIFIER);
+      id = jk->identifier();
       readToken();
       if(is_symbol('[')){ //varName '[' expression ']'
         writeXml(SYMBOL);
@@ -525,33 +654,65 @@ void CompilationEngine::compileTerm(){
         readToken_symbol(']');
         writeXml(SYMBOL);
       }else if(is_symbol('.') || is_symbol('(')){ //subroutineCall
+        functionName = className+"."+id;
+        nArgs = 0;
         if(is_symbol('.')){
           writeXml(SYMBOL);
           readToken_identifier();
           writeXml(IDENTIFIER);
+          if(st->isExist(id)){ //对象
+            functionName = st->typeOf(id)+"."+jk->identifier();
+            if(st->kindOf(id)=="field"){
+              vm->writePush(ARG,0);
+              vm->writePop(POINTER, 0);
+              vm->writePush(THIS,st->indexOf(id));
+            }else{
+              vm->writePush(st->kindOf(id),st->indexOf(id));
+            }
+            nArgs++;
+          }else{ //类
+            functionName = id+"."+jk->identifier();
+          }
         }else{
           rollback = true;
         }
         readToken_symbol('(');
         writeXml(SYMBOL);
         writeXml("<expressionList>");
-        compileExpressionList();
+        nArgs += compileExpressionList();
         writeXml("</expressionList>");
         readToken_symbol(')');
         writeXml(SYMBOL);
+        vm->writeCall(functionName, nArgs);
       }else{ //varName
         rollback = true;
+        varName = jk->identifier();
+        kind = st->kindOf(varName);
+        index = st->indexOf(varName);
+        if(kind=="field"){
+          vm->writePush(ARG,0);
+          vm->writePop(POINTER,0);
+          vm->writePush(THIS,index);
+        }else{
+          vm->writePush(kind, index);
+        }
       }
       return;
-    case KEYWORD: // integerConstant
+    case KEYWORD: // keyword constant
       if(!keyword_constant.count(jk->keyword())){
         cout<<"illegal term-keyword error: "<<jk->keyword()<<endl;
         exit(1);
       }
       writeXml(KEYWORD);
+      kw = jk->keyword();
+      if(kw!="this"){
+        vm->writePush(CONST, 0);
+        if(kw=="true") vm->writeArithmetic('~');
+      }else vm->writePush(ARG, 0);
       return;
     case INT_CONST: // int const
       writeXml(INT_CONST);
+      vm->writePush(CONST,jk->intVal());
       return;
     case STRING_CONST: //string const
       writeXml(STRING_CONST);
@@ -570,6 +731,10 @@ void CompilationEngine::compileTerm(){
         writeXml("<term>");
         compileTerm();
         writeXml("</term>");
+        if(sb=='-')
+          vm->writeArithmetic('n');
+        else
+          vm->writeArithmetic(sb);
       }
       return;
 
@@ -578,21 +743,25 @@ void CompilationEngine::compileTerm(){
   exit(1);
 }
 
-void CompilationEngine::compileExpressionList(){
+int CompilationEngine::compileExpressionList(){
+  int res = 0;
   readToken();
   if(!is_symbol(')')){
     rollback = true;
     writeXml("<expression>");
     compileExpression();
+    res++;
     writeXml("</expression>");
     readToken();
     while(is_symbol(',')){
       writeXml(SYMBOL);
       writeXml("<expression>");
       compileExpression();
+      res++;
       writeXml("</expression>");
       readToken();
     }
   }
   rollback = true;
+  return res;
 }

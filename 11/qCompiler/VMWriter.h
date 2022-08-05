@@ -3,6 +3,7 @@
 
 #include<string>
 #include<fstream>
+#include<iostream>
 using namespace std;
 
 enum Segment{
@@ -19,8 +20,11 @@ public:
   VMWriter(string file);
   ~VMWriter();
   void writePush(Segment segment, int index);
+  void writePush(string s,int index);
   void writePop(Segment segment,int index);
+  void writePop(string s,int index);
   void writeArithmetic(Command command);
+  void writeArithmetic(char c);
   void writeLabel(string label);
   void writeGoto(string label);
   void writeIf(string label);

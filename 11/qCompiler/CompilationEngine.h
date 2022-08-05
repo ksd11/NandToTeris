@@ -7,6 +7,7 @@
 #include"JackTokenizer.h"
 #include<set>
 #include"SymbolTable.h"
+#include"VMWriter.h"
 using namespace std;
 
 class CompilationEngine{
@@ -17,7 +18,7 @@ public:
   void compileClassVarDec();
   void compileSubroutine();
   void compileParameterList();
-  void compileVarDec(); 
+  int compileVarDec(); 
   void compileStatements();
   void compileDo();
   void compileLet();
@@ -26,12 +27,13 @@ public:
   void compileIf();
   void compileExpression();
   void compileTerm();
-  void compileExpressionList();
+  int compileExpressionList(); // 返回参数个数
 
 private:
   JackTokenizer* jk;
   ofstream out;
   SymbolTable* st;
+  VMWriter* vm;
   void readToken();
   void readToken_symbol(char ch);
   void readToken_identifier();

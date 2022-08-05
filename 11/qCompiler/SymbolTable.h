@@ -6,13 +6,9 @@
 #include<iostream>
 using namespace std;
 
-enum SymbolKind{
-  STATIC,FIELD,ARG,VAR
-};
-
 typedef struct {
   string type;
-  SymbolKind kind;
+  string kind;
   int index;
 }Variable;
 
@@ -21,15 +17,15 @@ public:
   SymbolTable();
   ~SymbolTable();
   void startSubroutine();
-  void define(string name,string type,SymbolKind kind);
   void define(string name,string type,string kindstring);
-  int varCount(SymbolKind kind);
-  SymbolKind kindOf(string name);
+  int varCount(string kind);
+  string kindOf(string name);
   string typeOf(string name);
   int indexOf(string name);
   void printGlobalTable();
   void printLocalTable();
   void printAll();
+  bool isExist(string name);
 private:
   unordered_map<string,Variable>* global_scope;
   unordered_map<string,Variable>* local_scope;

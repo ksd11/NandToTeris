@@ -11,7 +11,7 @@ static vector<string> files;
 static int cnt = 0;
 static int len;
 static string input_file_extension = ".jack";
-static string output_file_extension = ".xml";
+static string output_file_extension = ".vm";
 
 static string change_extension(string str){
   size_t idx = str.rfind(input_file_extension);
