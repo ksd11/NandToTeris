@@ -15,7 +15,7 @@ public:
   CompilationEngine(string input_file,string output_file);
   ~CompilationEngine();
   void compileClass();
-  void compileClassVarDec();
+  int compileClassVarDec();
   void compileSubroutine();
   void compileParameterList();
   int compileVarDec(); 
@@ -44,6 +44,8 @@ private:
   int type();
   void writeXml(TokenType t); 
   void writeXml(string str); 
+  void push_this_to_stack();
+  void subroutineCall(string id1, string id2);
 };
 
 

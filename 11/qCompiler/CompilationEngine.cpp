@@ -117,9 +117,53 @@ static string general_label(){
   static int index = 0;
   return "qCompiler.build."+ to_string(index++);
 }
+
+static bool isConstructor;
+static int classVarNum = 0;
+
+void CompilationEngine::push_this_to_stack(){
+  if(isConstructor){
+    vm->writePush(POINTER, 0);
+  }else{
+    vm->writePush(ARG, 0);
+  }
+}
+
+void CompilationEngine::subroutineCall(string id1, string id2){
+  string functionName;
+  int nArgs=0;
+
+  if(st->isExist(id1)){ // obj
+    functionName = st->typeOf(id1)+"."+id2;
+    if(st->kindOf(id1) == "field"){
+      push_this_to_stack();
+      vm->writePop(POINTER, 0);
+      vm->writePush(THIS,st->indexOf(id1));
+    }else{
+      vm->writePush(st->kindOf(id1),st->indexOf(id1));
+    }
+    nArgs++;
+  }else if(id2.length()>0){ //class
+    functionName = id1+"."+id2;
+  }else{ // routine
+    functionName = className+"."+id1;
+    push_this_to_stack();
+    nArgs++;
+  }
+  readToken_symbol('(');
+  writeXml(SYMBOL);
+  writeXml("<expressionList>");
+  nArgs += compileExpressionList();
+  writeXml("</expressionList>");
+  readToken_symbol(')');
+  writeXml(SYMBOL);
+  vm->writeCall(functionName, nArgs);
+}
+
 /******* 上面都是helper函数 **/
 
 void CompilationEngine::compileClass(){
+  classVarNum = 0;
   writeXml("<class>");
 
   readToken_keyword("class"); // 'class'
@@ -136,7 +180,7 @@ void CompilationEngine::compileClass(){
   while(jk->tokenType()==KEYWORD && (jk->keyword()=="static" || jk->keyword()=="field")){
     writeXml("<classVarDec>");
     rollback = true;
-    compileClassVarDec();
+    classVarNum += compileClassVarDec();
     writeXml("</classVarDec>");
     readToken();
   }
@@ -169,7 +213,8 @@ int CompilationEngine::type(){
   return 0;
 } 
 
-void CompilationEngine::compileClassVarDec(){
+int CompilationEngine::compileClassVarDec(){
+  int res = 0;
   string var_kind;  //当前变量的kind
   string var_type;  //当前变量的type
   string var_name; //当前变量的name  
@@ -192,6 +237,7 @@ void CompilationEngine::compileClassVarDec(){
     writeXml(IDENTIFIER);
     var_name = jk->identifier();
     st->define(var_name,var_type,var_kind);
+    res++;
 
     readToken();
     while(is_symbol(',')){
@@ -200,6 +246,7 @@ void CompilationEngine::compileClassVarDec(){
       writeXml(IDENTIFIER);
       var_name = jk->identifier();
       st->define(var_name,var_type,var_kind);
+      res++;
       readToken();
     }
     rollback = true;
@@ -207,18 +254,22 @@ void CompilationEngine::compileClassVarDec(){
     writeXml(SYMBOL);
   }else{
     cout<<"compile classVarDec error...\n";
+    exit(1);
   }
+  return res;
 }
 
 void CompilationEngine::compileSubroutine(){
   string functionName = className+".";
   int nArgs = 0; //局部变量的数量
+  isConstructor = false;
 
   static set<string> statements = {"let","if","else","while","do","return"}; 
 
   readToken_keyword(set<string>({"constructor","function","method"}));
   writeXml(KEYWORD);
   if(jk->keyword()=="method") nArgs++;
+  else if(jk->keyword()=="constructor") isConstructor=true;
 
   readToken();
   int t = type();
@@ -248,11 +299,17 @@ void CompilationEngine::compileSubroutine(){
     while(jk->tokenType()==KEYWORD && jk->keyword()=="var"){
       writeXml("<varDec>");
       rollback = true;
-      nArgs += compileVarDec();
+      nArgs+=compileVarDec();
       writeXml("</varDec>");
       readToken();
     }
     vm->writeFunction(functionName, nArgs);
+
+    if(isConstructor){
+      vm->writePush(CONST,classVarNum);
+      vm->writeCall("Memory.alloc", 1); //返回时this的地址压入栈中
+      vm->writePop(POINTER, 0);  //临时保存this地址
+    }
 
     // statements
     rollback = true;
@@ -265,6 +322,7 @@ void CompilationEngine::compileSubroutine(){
 
   }else{
     cout<<"compile subroutine error...\n";
+    exit(1);
   }
 
 }
@@ -410,31 +468,12 @@ void CompilationEngine::compileDo(){
     id2 = jk->identifier();
   }
 
-  //下面这段代码确定是 Class.function/var.method/method 的函数调用
-  if(st->isExist(id1)){ //var.method
-    functionName = st->typeOf(id1)+"."+id2;
-    nArgs++;
-    vm->writePush(LOCAL,st->indexOf(id1));
-  }else if(id2!=""){ // Class.function
-    functionName = id1+"."+id2;
-  }else{ // this.method
-    functionName = className+"."+id1;
-    nArgs++;
-    vm->writePush(ARG,0); //push argument 0 --> this
-  }
-
-  readToken_symbol('(');
-  writeXml(SYMBOL);
-  writeXml("<expressionList>");
-  nArgs += compileExpressionList();
-  writeXml("</expressionList>");
-  readToken_symbol(')');
-  writeXml(SYMBOL);
+  //下面这段代码确定是 Class.function/var.method/method 的函数调用，并执行
+  subroutineCall(id1, id2);
 
   readToken_symbol(';');
   writeXml(SYMBOL);
 
-  vm->writeCall(functionName, nArgs);
   vm->writePop(TEMP,0); //忽略返回值
 }
 
@@ -486,7 +525,7 @@ void CompilationEngine::compileLet(){
   if(subindex){ //Array
     vm->writePop(TEMP, 0);
     if(segment=="field"){  // field Array a;
-      vm->writePush(ARG,0);
+      push_this_to_stack();
       vm->writePop(POINTER,0);
       vm->writePush(THIS,index); //a
       
@@ -499,7 +538,7 @@ void CompilationEngine::compileLet(){
     vm->writePop(THAT,0);
   }else{
     if(segment=="field"){
-      vm->writePush(ARG,0);
+      push_this_to_stack();
       vm->writePop(POINTER,0);
       vm->writePop(THIS,index);
     }else{
@@ -634,7 +673,7 @@ void CompilationEngine::compileTerm(){
   };
   readToken();
   string varName;
-  string id;
+  string id1,id2;
   int index;
   string kind;
   string kw;
@@ -644,7 +683,7 @@ void CompilationEngine::compileTerm(){
   switch(jk->tokenType()){
     case IDENTIFIER: 
       writeXml(IDENTIFIER);
-      id = jk->identifier();
+      id1 = jk->identifier();
       readToken();
       if(is_symbol('[')){ //varName '[' expression ']'
         writeXml(SYMBOL);
@@ -654,43 +693,23 @@ void CompilationEngine::compileTerm(){
         readToken_symbol(']');
         writeXml(SYMBOL);
       }else if(is_symbol('.') || is_symbol('(')){ //subroutineCall
-        functionName = className+"."+id;
-        nArgs = 0;
+        id2="";
         if(is_symbol('.')){
           writeXml(SYMBOL);
           readToken_identifier();
           writeXml(IDENTIFIER);
-          if(st->isExist(id)){ //对象
-            functionName = st->typeOf(id)+"."+jk->identifier();
-            if(st->kindOf(id)=="field"){
-              vm->writePush(ARG,0);
-              vm->writePop(POINTER, 0);
-              vm->writePush(THIS,st->indexOf(id));
-            }else{
-              vm->writePush(st->kindOf(id),st->indexOf(id));
-            }
-            nArgs++;
-          }else{ //类
-            functionName = id+"."+jk->identifier();
-          }
+          id2 = jk->identifier();
         }else{
           rollback = true;
         }
-        readToken_symbol('(');
-        writeXml(SYMBOL);
-        writeXml("<expressionList>");
-        nArgs += compileExpressionList();
-        writeXml("</expressionList>");
-        readToken_symbol(')');
-        writeXml(SYMBOL);
-        vm->writeCall(functionName, nArgs);
+        subroutineCall(id1, id2);
       }else{ //varName
         rollback = true;
         varName = jk->identifier();
         kind = st->kindOf(varName);
         index = st->indexOf(varName);
         if(kind=="field"){
-          vm->writePush(ARG,0);
+          push_this_to_stack();
           vm->writePop(POINTER,0);
           vm->writePush(THIS,index);
         }else{
@@ -708,7 +727,7 @@ void CompilationEngine::compileTerm(){
       if(kw!="this"){
         vm->writePush(CONST, 0);
         if(kw=="true") vm->writeArithmetic('~');
-      }else vm->writePush(ARG, 0);
+      }else push_this_to_stack();
       return;
     case INT_CONST: // int const
       writeXml(INT_CONST);

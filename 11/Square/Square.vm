@@ -1,0 +1,464 @@
+function Square.new 0
+push constant 3
+call Memory.alloc 1
+pop pointer 0
+push argument 0
+push pointer 0
+pop pointer 0
+pop this 0
+push argument 1
+push pointer 0
+pop pointer 0
+pop this 1
+push argument 2
+push pointer 0
+pop pointer 0
+pop this 2
+push pointer 0
+call Square.draw 1
+pop temp 0
+push pointer 0
+return
+function Square.dispose 1
+push argument 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return
+function Square.draw 1
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 2
+add
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+push constant 0
+return
+function Square.erase 1
+push constant 0
+call Screen.setColor 1
+pop temp 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 2
+add
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+push constant 0
+return
+function Square.incSize 1
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 2
+add
+push constant 254
+lt
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 2
+add
+push constant 510
+lt
+and
+not
+if-goto qCompiler.build.0
+push argument 0
+call Square.erase 1
+pop temp 0
+push argument 0
+pop pointer 0
+push this 2
+push constant 2
+add
+push argument 0
+pop pointer 0
+pop this 2
+push argument 0
+call Square.draw 1
+pop temp 0
+goto qCompiler.build.1
+label qCompiler.build.0
+label qCompiler.build.1
+push constant 0
+return
+function Square.decSize 1
+push argument 0
+pop pointer 0
+push this 2
+push constant 2
+gt
+not
+if-goto qCompiler.build.2
+push argument 0
+call Square.erase 1
+pop temp 0
+push argument 0
+pop pointer 0
+push this 2
+push constant 2
+sub
+push argument 0
+pop pointer 0
+pop this 2
+push argument 0
+call Square.draw 1
+pop temp 0
+goto qCompiler.build.3
+label qCompiler.build.2
+label qCompiler.build.3
+push constant 0
+return
+function Square.moveUp 1
+push argument 0
+pop pointer 0
+push this 1
+push constant 1
+gt
+not
+if-goto qCompiler.build.4
+push constant 0
+call Screen.setColor 1
+pop temp 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 2
+add
+push constant 1
+sub
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 2
+add
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+push argument 0
+pop pointer 0
+push this 1
+push constant 2
+sub
+push argument 0
+pop pointer 0
+pop this 1
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 2
+add
+push argument 0
+pop pointer 0
+push this 1
+push constant 1
+add
+call Screen.drawRectangle 4
+pop temp 0
+goto qCompiler.build.5
+label qCompiler.build.4
+label qCompiler.build.5
+push constant 0
+return
+function Square.moveDown 1
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 2
+add
+push constant 254
+lt
+not
+if-goto qCompiler.build.6
+push constant 0
+call Screen.setColor 1
+pop temp 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 2
+add
+push argument 0
+pop pointer 0
+push this 1
+push constant 1
+add
+call Screen.drawRectangle 4
+pop temp 0
+push argument 0
+pop pointer 0
+push this 1
+push constant 2
+add
+push argument 0
+pop pointer 0
+pop this 1
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 2
+add
+push constant 1
+sub
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 2
+add
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+goto qCompiler.build.7
+label qCompiler.build.6
+label qCompiler.build.7
+push constant 0
+return
+function Square.moveLeft 1
+push argument 0
+pop pointer 0
+push this 0
+push constant 1
+gt
+not
+if-goto qCompiler.build.8
+push constant 0
+call Screen.setColor 1
+pop temp 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 2
+add
+push constant 1
+sub
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 2
+add
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+push argument 0
+pop pointer 0
+push this 0
+push constant 2
+sub
+push argument 0
+pop pointer 0
+pop this 0
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 0
+push constant 1
+add
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+goto qCompiler.build.9
+label qCompiler.build.8
+label qCompiler.build.9
+push constant 0
+return
+function Square.moveRight 1
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 2
+add
+push constant 510
+lt
+not
+if-goto qCompiler.build.10
+push constant 0
+call Screen.setColor 1
+pop temp 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 0
+push constant 1
+add
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+push argument 0
+pop pointer 0
+push this 0
+push constant 2
+add
+push argument 0
+pop pointer 0
+pop this 0
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 2
+add
+push constant 1
+sub
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 2
+add
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 2
+add
+call Screen.drawRectangle 4
+pop temp 0
+goto qCompiler.build.11
+label qCompiler.build.10
+label qCompiler.build.11
+push constant 0
+return
