@@ -28,7 +28,7 @@ void SymbolTable::define(string name,string type,string kind){
   }
 
   if(scope->count(name)){
-    cout<<name<< " is defined.\n"<<endl;
+    cout<<name<< " has been defined.\n"<<endl;
     exit(1);
   }
   scope->insert({name,{type,kind,idx}});

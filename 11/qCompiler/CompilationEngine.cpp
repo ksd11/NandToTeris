@@ -115,7 +115,7 @@ static string className;
 
 static string general_label(){
   static int index = 0;
-  return "qCompiler.build."+ to_string(index++);
+  return "qCompiler.build."+className +"."+ to_string(index++);
 }
 
 static bool isConstructor;
@@ -143,12 +143,14 @@ void CompilationEngine::subroutineCall(string id1, string id2){
       vm->writePush(st->kindOf(id1),st->indexOf(id1));
     }
     nArgs++;
+    //st->define("this",st->typeOf(id1),"argument");
   }else if(id2.length()>0){ //class
     functionName = id1+"."+id2;
   }else{ // routine
     functionName = className+"."+id1;
     push_this_to_stack();
     nArgs++;
+    //st->define("this",className,"argument");
   }
   readToken_symbol('(');
   writeXml(SYMBOL);
@@ -256,7 +258,7 @@ int CompilationEngine::compileClassVarDec(){
     cout<<"compile classVarDec error...\n";
     exit(1);
   }
-  return res;
+  return var_kind=="field"? res : 0;
 }
 
 void CompilationEngine::compileSubroutine(){
@@ -268,8 +270,8 @@ void CompilationEngine::compileSubroutine(){
 
   readToken_keyword(set<string>({"constructor","function","method"}));
   writeXml(KEYWORD);
-  if(jk->keyword()=="method") nArgs++;
-  else if(jk->keyword()=="constructor") isConstructor=true;
+  string method_type = jk->keyword();
+  if(method_type=="constructor") isConstructor=true;
 
   readToken();
   int t = type();
@@ -283,6 +285,10 @@ void CompilationEngine::compileSubroutine(){
 
     readToken_symbol('(');
     writeXml(SYMBOL);
+
+    if(method_type == "method"){ // 定义this为0号元素
+      st->define("this",className,"argument");
+    }
 
     writeXml("<parameterList>");
     compileParameterList();
@@ -448,9 +454,6 @@ void CompilationEngine::compileStatements(){
 
 // 'do' subroutineCall ';'
 void CompilationEngine::compileDo(){
-  string functionName;
-  int nArgs = 0;
-
   string id1,id2;
   readToken_keyword("do");
   writeXml(KEYWORD);
@@ -679,6 +682,8 @@ void CompilationEngine::compileTerm(){
   string kw;
   string functionName;
   int nArgs;
+  string str;
+  int slen;
 
   switch(jk->tokenType()){
     case IDENTIFIER: 
@@ -692,6 +697,19 @@ void CompilationEngine::compileTerm(){
         writeXml("</expression>");
         readToken_symbol(']');
         writeXml(SYMBOL);
+        kind = st->kindOf(id1);
+        index = st->indexOf(id1);
+        if(kind=="field"){
+          push_this_to_stack();
+          vm->writePop(POINTER,0);
+          vm->writePush(THIS,index);
+        }else{
+          vm->writePush(kind, index);
+        }
+        vm->writeArithmetic('+');  //a[i]
+        vm->writePop(POINTER,1);
+        vm->writePush(THAT,0);
+
       }else if(is_symbol('.') || is_symbol('(')){ //subroutineCall
         id2="";
         if(is_symbol('.')){
@@ -735,6 +753,14 @@ void CompilationEngine::compileTerm(){
       return;
     case STRING_CONST: //string const
       writeXml(STRING_CONST);
+      str = jk->stringVal();
+      slen = str.length();
+      vm->writePush(CONST, slen);
+      vm->writeCall("String.new", 1); //this已被压入
+      for(int i=0;i<slen;i++){
+        vm->writePush(CONST, str[i]);
+        vm->writeCall("String.appendChar", 2);
+      }
       return;
     case SYMBOL:
       char sb = jk->symbol();

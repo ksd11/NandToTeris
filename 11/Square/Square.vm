@@ -19,13 +19,13 @@ call Square.draw 1
 pop temp 0
 push pointer 0
 return
-function Square.dispose 1
+function Square.dispose 0
 push argument 0
 call Memory.deAlloc 1
 pop temp 0
 push constant 0
 return
-function Square.draw 1
+function Square.draw 0
 push constant 0
 not
 call Screen.setColor 1
@@ -54,7 +54,7 @@ call Screen.drawRectangle 4
 pop temp 0
 push constant 0
 return
-function Square.erase 1
+function Square.erase 0
 push constant 0
 call Screen.setColor 1
 pop temp 0
@@ -82,7 +82,7 @@ call Screen.drawRectangle 4
 pop temp 0
 push constant 0
 return
-function Square.incSize 1
+function Square.incSize 0
 push argument 0
 pop pointer 0
 push this 1
@@ -103,7 +103,7 @@ push constant 510
 lt
 and
 not
-if-goto qCompiler.build.0
+if-goto qCompiler.build.Square.0
 push argument 0
 call Square.erase 1
 pop temp 0
@@ -118,19 +118,19 @@ pop this 2
 push argument 0
 call Square.draw 1
 pop temp 0
-goto qCompiler.build.1
-label qCompiler.build.0
-label qCompiler.build.1
+goto qCompiler.build.Square.1
+label qCompiler.build.Square.0
+label qCompiler.build.Square.1
 push constant 0
 return
-function Square.decSize 1
+function Square.decSize 0
 push argument 0
 pop pointer 0
 push this 2
 push constant 2
 gt
 not
-if-goto qCompiler.build.2
+if-goto qCompiler.build.Square.2
 push argument 0
 call Square.erase 1
 pop temp 0
@@ -145,19 +145,19 @@ pop this 2
 push argument 0
 call Square.draw 1
 pop temp 0
-goto qCompiler.build.3
-label qCompiler.build.2
-label qCompiler.build.3
+goto qCompiler.build.Square.3
+label qCompiler.build.Square.2
+label qCompiler.build.Square.3
 push constant 0
 return
-function Square.moveUp 1
+function Square.moveUp 0
 push argument 0
 pop pointer 0
 push this 1
 push constant 1
 gt
 not
-if-goto qCompiler.build.4
+if-goto qCompiler.build.Square.4
 push constant 0
 call Screen.setColor 1
 pop temp 0
@@ -221,12 +221,12 @@ push constant 1
 add
 call Screen.drawRectangle 4
 pop temp 0
-goto qCompiler.build.5
-label qCompiler.build.4
-label qCompiler.build.5
+goto qCompiler.build.Square.5
+label qCompiler.build.Square.4
+label qCompiler.build.Square.5
 push constant 0
 return
-function Square.moveDown 1
+function Square.moveDown 0
 push argument 0
 pop pointer 0
 push this 1
@@ -237,7 +237,7 @@ add
 push constant 254
 lt
 not
-if-goto qCompiler.build.6
+if-goto qCompiler.build.Square.6
 push constant 0
 call Screen.setColor 1
 pop temp 0
@@ -301,19 +301,19 @@ push this 2
 add
 call Screen.drawRectangle 4
 pop temp 0
-goto qCompiler.build.7
-label qCompiler.build.6
-label qCompiler.build.7
+goto qCompiler.build.Square.7
+label qCompiler.build.Square.6
+label qCompiler.build.Square.7
 push constant 0
 return
-function Square.moveLeft 1
+function Square.moveLeft 0
 push argument 0
 pop pointer 0
 push this 0
 push constant 1
 gt
 not
-if-goto qCompiler.build.8
+if-goto qCompiler.build.Square.8
 push constant 0
 call Screen.setColor 1
 pop temp 0
@@ -377,12 +377,12 @@ push this 2
 add
 call Screen.drawRectangle 4
 pop temp 0
-goto qCompiler.build.9
-label qCompiler.build.8
-label qCompiler.build.9
+goto qCompiler.build.Square.9
+label qCompiler.build.Square.8
+label qCompiler.build.Square.9
 push constant 0
 return
-function Square.moveRight 1
+function Square.moveRight 0
 push argument 0
 pop pointer 0
 push this 0
@@ -393,7 +393,7 @@ add
 push constant 510
 lt
 not
-if-goto qCompiler.build.10
+if-goto qCompiler.build.Square.10
 push constant 0
 call Screen.setColor 1
 pop temp 0
@@ -457,8 +457,8 @@ push this 2
 add
 call Screen.drawRectangle 4
 pop temp 0
-goto qCompiler.build.11
-label qCompiler.build.10
-label qCompiler.build.11
+goto qCompiler.build.Square.11
+label qCompiler.build.Square.10
+label qCompiler.build.Square.11
 push constant 0
 return

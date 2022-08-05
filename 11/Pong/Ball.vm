@@ -1,0 +1,603 @@
+function Ball.new 0
+push constant 15
+call Memory.alloc 1
+pop pointer 0
+push argument 0
+push pointer 0
+pop pointer 0
+pop this 0
+push argument 1
+push pointer 0
+pop pointer 0
+pop this 1
+push argument 2
+push pointer 0
+pop pointer 0
+pop this 10
+push argument 3
+push constant 6
+sub
+push pointer 0
+pop pointer 0
+pop this 11
+push argument 4
+push pointer 0
+pop pointer 0
+pop this 12
+push argument 5
+push constant 6
+sub
+push pointer 0
+pop pointer 0
+pop this 13
+push constant 0
+push pointer 0
+pop pointer 0
+pop this 14
+push pointer 0
+call Ball.show 1
+pop temp 0
+push pointer 0
+return
+function Ball.dispose 0
+push argument 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return
+function Ball.show 0
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push argument 0
+call Ball.draw 1
+pop temp 0
+push constant 0
+return
+function Ball.hide 0
+push constant 0
+call Screen.setColor 1
+pop temp 0
+push argument 0
+call Ball.draw 1
+pop temp 0
+push constant 0
+return
+function Ball.draw 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 0
+push constant 5
+add
+push argument 0
+pop pointer 0
+push this 1
+push constant 5
+add
+call Screen.drawRectangle 4
+pop temp 0
+push constant 0
+return
+function Ball.getLeft 0
+push argument 0
+pop pointer 0
+push this 0
+return
+function Ball.getRight 0
+push argument 0
+pop pointer 0
+push this 0
+push constant 5
+add
+return
+function Ball.setDestination 3
+push argument 1
+push argument 0
+pop pointer 0
+push this 0
+sub
+push argument 0
+pop pointer 0
+pop this 2
+push argument 2
+push argument 0
+pop pointer 0
+push this 1
+sub
+push argument 0
+pop pointer 0
+pop this 3
+push argument 0
+pop pointer 0
+push this 2
+call Math.abs 1
+pop local 0
+push argument 0
+pop pointer 0
+push this 3
+call Math.abs 1
+pop local 1
+push local 0
+push local 1
+lt
+push argument 0
+pop pointer 0
+pop this 7
+push argument 0
+pop pointer 0
+push this 7
+not
+if-goto qCompiler.build.Ball.0
+push local 0
+pop local 2
+push local 1
+pop local 0
+push local 2
+pop local 1
+push argument 0
+pop pointer 0
+push this 1
+push argument 2
+lt
+push argument 0
+pop pointer 0
+pop this 8
+push argument 0
+pop pointer 0
+push this 0
+push argument 1
+lt
+push argument 0
+pop pointer 0
+pop this 9
+goto qCompiler.build.Ball.1
+label qCompiler.build.Ball.0
+push argument 0
+pop pointer 0
+push this 0
+push argument 1
+lt
+push argument 0
+pop pointer 0
+pop this 8
+push argument 0
+pop pointer 0
+push this 1
+push argument 2
+lt
+push argument 0
+pop pointer 0
+pop this 9
+label qCompiler.build.Ball.1
+push constant 2
+push local 1
+call Math.multiply 2
+push local 0
+sub
+push argument 0
+pop pointer 0
+pop this 4
+push constant 2
+push local 1
+call Math.multiply 2
+push argument 0
+pop pointer 0
+pop this 5
+push constant 2
+push local 1
+push local 0
+sub
+call Math.multiply 2
+push argument 0
+pop pointer 0
+pop this 6
+push constant 0
+return
+function Ball.move 0
+push argument 0
+call Ball.hide 1
+pop temp 0
+push argument 0
+pop pointer 0
+push this 4
+push constant 0
+lt
+not
+if-goto qCompiler.build.Ball.2
+push argument 0
+pop pointer 0
+push this 4
+push argument 0
+pop pointer 0
+push this 5
+add
+push argument 0
+pop pointer 0
+pop this 4
+goto qCompiler.build.Ball.3
+label qCompiler.build.Ball.2
+push argument 0
+pop pointer 0
+push this 4
+push argument 0
+pop pointer 0
+push this 6
+add
+push argument 0
+pop pointer 0
+pop this 4
+push argument 0
+pop pointer 0
+push this 9
+not
+if-goto qCompiler.build.Ball.4
+push argument 0
+pop pointer 0
+push this 7
+not
+if-goto qCompiler.build.Ball.6
+push argument 0
+pop pointer 0
+push this 0
+push constant 4
+add
+push argument 0
+pop pointer 0
+pop this 0
+goto qCompiler.build.Ball.7
+label qCompiler.build.Ball.6
+push argument 0
+pop pointer 0
+push this 1
+push constant 4
+add
+push argument 0
+pop pointer 0
+pop this 1
+label qCompiler.build.Ball.7
+goto qCompiler.build.Ball.5
+label qCompiler.build.Ball.4
+push argument 0
+pop pointer 0
+push this 7
+not
+if-goto qCompiler.build.Ball.8
+push argument 0
+pop pointer 0
+push this 0
+push constant 4
+sub
+push argument 0
+pop pointer 0
+pop this 0
+goto qCompiler.build.Ball.9
+label qCompiler.build.Ball.8
+push argument 0
+pop pointer 0
+push this 1
+push constant 4
+sub
+push argument 0
+pop pointer 0
+pop this 1
+label qCompiler.build.Ball.9
+label qCompiler.build.Ball.5
+label qCompiler.build.Ball.3
+push argument 0
+pop pointer 0
+push this 8
+not
+if-goto qCompiler.build.Ball.10
+push argument 0
+pop pointer 0
+push this 7
+not
+if-goto qCompiler.build.Ball.12
+push argument 0
+pop pointer 0
+push this 1
+push constant 4
+add
+push argument 0
+pop pointer 0
+pop this 1
+goto qCompiler.build.Ball.13
+label qCompiler.build.Ball.12
+push argument 0
+pop pointer 0
+push this 0
+push constant 4
+add
+push argument 0
+pop pointer 0
+pop this 0
+label qCompiler.build.Ball.13
+goto qCompiler.build.Ball.11
+label qCompiler.build.Ball.10
+push argument 0
+pop pointer 0
+push this 7
+not
+if-goto qCompiler.build.Ball.14
+push argument 0
+pop pointer 0
+push this 1
+push constant 4
+sub
+push argument 0
+pop pointer 0
+pop this 1
+goto qCompiler.build.Ball.15
+label qCompiler.build.Ball.14
+push argument 0
+pop pointer 0
+push this 0
+push constant 4
+sub
+push argument 0
+pop pointer 0
+pop this 0
+label qCompiler.build.Ball.15
+label qCompiler.build.Ball.11
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 10
+gt
+not
+not
+if-goto qCompiler.build.Ball.16
+push constant 1
+push argument 0
+pop pointer 0
+pop this 14
+push argument 0
+pop pointer 0
+push this 10
+push argument 0
+pop pointer 0
+pop this 0
+goto qCompiler.build.Ball.17
+label qCompiler.build.Ball.16
+label qCompiler.build.Ball.17
+push argument 0
+pop pointer 0
+push this 0
+push argument 0
+pop pointer 0
+push this 11
+lt
+not
+not
+if-goto qCompiler.build.Ball.18
+push constant 2
+push argument 0
+pop pointer 0
+pop this 14
+push argument 0
+pop pointer 0
+push this 11
+push argument 0
+pop pointer 0
+pop this 0
+goto qCompiler.build.Ball.19
+label qCompiler.build.Ball.18
+label qCompiler.build.Ball.19
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 12
+gt
+not
+not
+if-goto qCompiler.build.Ball.20
+push constant 3
+push argument 0
+pop pointer 0
+pop this 14
+push argument 0
+pop pointer 0
+push this 12
+push argument 0
+pop pointer 0
+pop this 1
+goto qCompiler.build.Ball.21
+label qCompiler.build.Ball.20
+label qCompiler.build.Ball.21
+push argument 0
+pop pointer 0
+push this 1
+push argument 0
+pop pointer 0
+push this 13
+lt
+not
+not
+if-goto qCompiler.build.Ball.22
+push constant 4
+push argument 0
+pop pointer 0
+pop this 14
+push argument 0
+pop pointer 0
+push this 13
+push argument 0
+pop pointer 0
+pop this 1
+goto qCompiler.build.Ball.23
+label qCompiler.build.Ball.22
+label qCompiler.build.Ball.23
+push argument 0
+call Ball.show 1
+pop temp 0
+push argument 0
+pop pointer 0
+push this 14
+return
+function Ball.bounce 5
+push argument 0
+pop pointer 0
+push this 2
+push constant 10
+call Math.divide 2
+pop local 2
+push argument 0
+pop pointer 0
+push this 3
+push constant 10
+call Math.divide 2
+pop local 3
+push argument 1
+push constant 0
+eq
+not
+if-goto qCompiler.build.Ball.24
+push constant 10
+pop local 4
+goto qCompiler.build.Ball.25
+label qCompiler.build.Ball.24
+push argument 0
+pop pointer 0
+push this 2
+push constant 0
+lt
+not
+push argument 1
+push constant 1
+eq
+and
+push argument 0
+pop pointer 0
+push this 2
+push constant 0
+lt
+push argument 1
+push constant 1
+neg
+eq
+and
+or
+not
+if-goto qCompiler.build.Ball.26
+push constant 20
+pop local 4
+goto qCompiler.build.Ball.27
+label qCompiler.build.Ball.26
+push constant 5
+pop local 4
+label qCompiler.build.Ball.27
+label qCompiler.build.Ball.25
+push argument 0
+pop pointer 0
+push this 14
+push constant 1
+eq
+not
+if-goto qCompiler.build.Ball.28
+push constant 506
+pop local 0
+push local 3
+push constant 50
+neg
+call Math.multiply 2
+push local 2
+call Math.divide 2
+pop local 1
+push argument 0
+pop pointer 0
+push this 1
+push local 1
+push local 4
+call Math.multiply 2
+add
+pop local 1
+goto qCompiler.build.Ball.29
+label qCompiler.build.Ball.28
+push argument 0
+pop pointer 0
+push this 14
+push constant 2
+eq
+not
+if-goto qCompiler.build.Ball.30
+push constant 0
+pop local 0
+push local 3
+push constant 50
+call Math.multiply 2
+push local 2
+call Math.divide 2
+pop local 1
+push argument 0
+pop pointer 0
+push this 1
+push local 1
+push local 4
+call Math.multiply 2
+add
+pop local 1
+goto qCompiler.build.Ball.31
+label qCompiler.build.Ball.30
+push argument 0
+pop pointer 0
+push this 14
+push constant 3
+eq
+not
+if-goto qCompiler.build.Ball.32
+push constant 250
+pop local 1
+push local 2
+push constant 25
+neg
+call Math.multiply 2
+push local 3
+call Math.divide 2
+pop local 0
+push argument 0
+pop pointer 0
+push this 0
+push local 0
+push local 4
+call Math.multiply 2
+add
+pop local 0
+goto qCompiler.build.Ball.33
+label qCompiler.build.Ball.32
+push constant 0
+pop local 1
+push local 2
+push constant 25
+call Math.multiply 2
+push local 3
+call Math.divide 2
+pop local 0
+push argument 0
+pop pointer 0
+push this 0
+push local 0
+push local 4
+call Math.multiply 2
+add
+pop local 0
+label qCompiler.build.Ball.33
+label qCompiler.build.Ball.31
+label qCompiler.build.Ball.29
+push argument 0
+push local 0
+push local 1
+call Ball.setDestination 3
+pop temp 0
+push constant 0
+return

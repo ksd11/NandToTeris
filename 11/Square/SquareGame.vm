@@ -15,7 +15,7 @@ pop pointer 0
 pop this 1
 push pointer 0
 return
-function SquareGame.dispose 1
+function SquareGame.dispose 0
 push argument 0
 pop pointer 0
 push this 0
@@ -26,193 +26,193 @@ call Memory.deAlloc 1
 pop temp 0
 push constant 0
 return
-function SquareGame.moveSquare 1
+function SquareGame.moveSquare 0
 push argument 0
 pop pointer 0
 push this 1
 push constant 1
 eq
 not
-if-goto qCompiler.build.12
+if-goto qCompiler.build.SquareGame.12
 push argument 0
 pop pointer 0
 push this 0
 call Square.moveUp 1
 pop temp 0
-goto qCompiler.build.13
-label qCompiler.build.12
-label qCompiler.build.13
+goto qCompiler.build.SquareGame.13
+label qCompiler.build.SquareGame.12
+label qCompiler.build.SquareGame.13
 push argument 0
 pop pointer 0
 push this 1
 push constant 2
 eq
 not
-if-goto qCompiler.build.14
+if-goto qCompiler.build.SquareGame.14
 push argument 0
 pop pointer 0
 push this 0
 call Square.moveDown 1
 pop temp 0
-goto qCompiler.build.15
-label qCompiler.build.14
-label qCompiler.build.15
+goto qCompiler.build.SquareGame.15
+label qCompiler.build.SquareGame.14
+label qCompiler.build.SquareGame.15
 push argument 0
 pop pointer 0
 push this 1
 push constant 3
 eq
 not
-if-goto qCompiler.build.16
+if-goto qCompiler.build.SquareGame.16
 push argument 0
 pop pointer 0
 push this 0
 call Square.moveLeft 1
 pop temp 0
-goto qCompiler.build.17
-label qCompiler.build.16
-label qCompiler.build.17
+goto qCompiler.build.SquareGame.17
+label qCompiler.build.SquareGame.16
+label qCompiler.build.SquareGame.17
 push argument 0
 pop pointer 0
 push this 1
 push constant 4
 eq
 not
-if-goto qCompiler.build.18
+if-goto qCompiler.build.SquareGame.18
 push argument 0
 pop pointer 0
 push this 0
 call Square.moveRight 1
 pop temp 0
-goto qCompiler.build.19
-label qCompiler.build.18
-label qCompiler.build.19
+goto qCompiler.build.SquareGame.19
+label qCompiler.build.SquareGame.18
+label qCompiler.build.SquareGame.19
 push constant 5
 call Sys.wait 1
 pop temp 0
 push constant 0
 return
-function SquareGame.run 3
+function SquareGame.run 2
 push constant 0
 pop local 1
-label qCompiler.build.20
+label qCompiler.build.SquareGame.20
 push local 1
 not
 not
-if-goto qCompiler.build.21
-label qCompiler.build.22
+if-goto qCompiler.build.SquareGame.21
+label qCompiler.build.SquareGame.22
 push local 0
 push constant 0
 eq
 not
-if-goto qCompiler.build.23
+if-goto qCompiler.build.SquareGame.23
 call Keyboard.keyPressed 0
 pop local 0
 push argument 0
 call SquareGame.moveSquare 1
 pop temp 0
-goto qCompiler.build.22
-label qCompiler.build.23
+goto qCompiler.build.SquareGame.22
+label qCompiler.build.SquareGame.23
 push local 0
 push constant 81
 eq
 not
-if-goto qCompiler.build.24
+if-goto qCompiler.build.SquareGame.24
 push constant 0
 not
 pop local 1
-goto qCompiler.build.25
-label qCompiler.build.24
-label qCompiler.build.25
+goto qCompiler.build.SquareGame.25
+label qCompiler.build.SquareGame.24
+label qCompiler.build.SquareGame.25
 push local 0
 push constant 90
 eq
 not
-if-goto qCompiler.build.26
+if-goto qCompiler.build.SquareGame.26
 push argument 0
 pop pointer 0
 push this 0
 call Square.decSize 1
 pop temp 0
-goto qCompiler.build.27
-label qCompiler.build.26
-label qCompiler.build.27
+goto qCompiler.build.SquareGame.27
+label qCompiler.build.SquareGame.26
+label qCompiler.build.SquareGame.27
 push local 0
 push constant 88
 eq
 not
-if-goto qCompiler.build.28
+if-goto qCompiler.build.SquareGame.28
 push argument 0
 pop pointer 0
 push this 0
 call Square.incSize 1
 pop temp 0
-goto qCompiler.build.29
-label qCompiler.build.28
-label qCompiler.build.29
+goto qCompiler.build.SquareGame.29
+label qCompiler.build.SquareGame.28
+label qCompiler.build.SquareGame.29
 push local 0
 push constant 131
 eq
 not
-if-goto qCompiler.build.30
+if-goto qCompiler.build.SquareGame.30
 push constant 1
 push argument 0
 pop pointer 0
 pop this 1
-goto qCompiler.build.31
-label qCompiler.build.30
-label qCompiler.build.31
+goto qCompiler.build.SquareGame.31
+label qCompiler.build.SquareGame.30
+label qCompiler.build.SquareGame.31
 push local 0
 push constant 133
 eq
 not
-if-goto qCompiler.build.32
+if-goto qCompiler.build.SquareGame.32
 push constant 2
 push argument 0
 pop pointer 0
 pop this 1
-goto qCompiler.build.33
-label qCompiler.build.32
-label qCompiler.build.33
+goto qCompiler.build.SquareGame.33
+label qCompiler.build.SquareGame.32
+label qCompiler.build.SquareGame.33
 push local 0
 push constant 130
 eq
 not
-if-goto qCompiler.build.34
+if-goto qCompiler.build.SquareGame.34
 push constant 3
 push argument 0
 pop pointer 0
 pop this 1
-goto qCompiler.build.35
-label qCompiler.build.34
-label qCompiler.build.35
+goto qCompiler.build.SquareGame.35
+label qCompiler.build.SquareGame.34
+label qCompiler.build.SquareGame.35
 push local 0
 push constant 132
 eq
 not
-if-goto qCompiler.build.36
+if-goto qCompiler.build.SquareGame.36
 push constant 4
 push argument 0
 pop pointer 0
 pop this 1
-goto qCompiler.build.37
-label qCompiler.build.36
-label qCompiler.build.37
-label qCompiler.build.38
+goto qCompiler.build.SquareGame.37
+label qCompiler.build.SquareGame.36
+label qCompiler.build.SquareGame.37
+label qCompiler.build.SquareGame.38
 push local 0
 push constant 0
 eq
 not
 not
-if-goto qCompiler.build.39
+if-goto qCompiler.build.SquareGame.39
 call Keyboard.keyPressed 0
 pop local 0
 push argument 0
 call SquareGame.moveSquare 1
 pop temp 0
-goto qCompiler.build.38
-label qCompiler.build.39
-goto qCompiler.build.20
-label qCompiler.build.21
+goto qCompiler.build.SquareGame.38
+label qCompiler.build.SquareGame.39
+goto qCompiler.build.SquareGame.20
+label qCompiler.build.SquareGame.21
 push constant 0
 return

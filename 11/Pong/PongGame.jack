@@ -68,6 +68,7 @@ class PongGame {
                 let key = Keyboard.keyPressed();
                 do bat.move();
                 do moveBall();
+                //do Output.printInt(bat.getDirection());
                 do Sys.wait(50);
             }
 
@@ -84,6 +85,7 @@ class PongGame {
                 let key = Keyboard.keyPressed();
                 do bat.move();
                 do moveBall();
+                //do Output.printInt(1);
                 do Sys.wait(50);
             }
         }
