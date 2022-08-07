@@ -64,7 +64,7 @@ class Memory {
         // 设置返回块的信息
         let pointer = cur+1;
         
-        if(length > (size + 2)){
+        if(length > size + 2){
             let split = true;
             do Memory.poke(cur, size+1);
         }else{
@@ -112,13 +112,7 @@ class Memory {
         }
 
         if( p = free){ // 待分配的块在链表最前面
-            if((segment + size) = p){
-                let segment[0] = size + p[0];
-                let segment[1] = p[1];
-            }else{
-                let segment[1] = p;
-            }
-            let free = segment;
+
         }else{  // 在 f和p之间插入块
             if((f + f[0]) = segment){
                 let segment = f;

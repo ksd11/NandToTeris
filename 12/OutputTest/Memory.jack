@@ -64,7 +64,7 @@ class Memory {
         // 设置返回块的信息
         let pointer = cur+1;
         
-        if(length > (size + 2)){
+        if(length > size + 2){
             let split = true;
             do Memory.poke(cur, size+1);
         }else{
